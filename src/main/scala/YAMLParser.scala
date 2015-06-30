@@ -7,8 +7,8 @@ import scala.beans.BeanProperty
 
 object YAMLParser {
   val text =
-    """
-  setup:
+  """
+  before_jobs:
     - mkdir test
     - touch test/hi.txt
     - \"testing test\" > test/hi.txt
@@ -20,9 +20,17 @@ object YAMLParser {
         - time curl http://google.com
     - name: job2
       metric: time
+      before_script:
+        - touch executingjob2.txt
       script:
         - time curl http://bing.com
-    """.stripMargin
+      after_script:
+        - rm executingjob2.txt
+
+  after_jobs:
+    - rm test/hi.txt
+    - rmdir test
+  """.stripMargin
 
   def main(args: Array[String]): Unit = {
     val yaml =  new Yaml(new Constructor(classOf[TestsConfiguration]))
@@ -32,20 +40,24 @@ object YAMLParser {
 }
 
 class TestsConfiguration {
-  @BeanProperty var setup = new util.ArrayList[String]()
+  @BeanProperty var before_jobs = new util.ArrayList[String]()
   @BeanProperty var jobs = new util.ArrayList[JobDefinition]()
+  @BeanProperty var after_jobs = new util.ArrayList[String]()
 
   override def toString: String = {
-    "setup: %s, jobs: %s".format(setup.toString, jobs.toString)
+    "before: %s, jobs: %s, after: %s".format(before_jobs.toString, jobs.toString, after_jobs.toString)
   }
 }
 
 class JobDefinition {
   @BeanProperty var name: String = null
   @BeanProperty var metric: String = null
+  @BeanProperty var before_script = new util.ArrayList[String]()
   @BeanProperty var script = new util.ArrayList[String]()
+  @BeanProperty var after_script = new util.ArrayList[String]()
 
   override def toString: String = {
-    "name: %s, metric: %s, script: %s".format(name, metric, script.toString)
+    "name: %s, metric: %s, before: %s, script: %s after: %s".format(name, metric, before_script.toString,
+      script.toString, after_script.toString)
   }
 }
