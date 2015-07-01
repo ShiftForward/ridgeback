@@ -11,6 +11,7 @@ lazy val ridgeback = (project in file(".")).
     name := "ridgeback",
     libraryDependencies ++= {
       Seq(
+        "org.yaml"            %   "snakeyaml"     % "1.15",
         "com.typesafe.slick"  %%  "slick"         % "3.0.0",
         "com.h2database"      %   "h2"            % "1.3.175"
       )
