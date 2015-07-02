@@ -6,7 +6,7 @@ import slick.driver.JdbcProfile
 import spray.testkit.ScalatestRouteTest
 import utils._
 
-trait AbstractPersistenceTest extends ScalatestRouteTest{  this: Suite =>
+trait AbstractPersistenceTest extends ScalatestRouteTest { this: Suite =>
 
   trait Modules extends ConfigurationModuleImpl with PersistenceModuleTest {
   }

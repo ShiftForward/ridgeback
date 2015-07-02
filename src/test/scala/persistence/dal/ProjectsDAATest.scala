@@ -17,7 +17,7 @@ class ProjectsDAATest extends FunSuite with AbstractPersistenceTest with BeforeA
   }
 
   test("ProjectsActor: Testing Projects Actor") {
-    Await.result(modules.projectsDal.createTables(),5.seconds)
+    Await.result(modules.projectsDal.createTables(), 5.seconds)
     val numberOfEntities : Int = Await.result(modules.projectsDal.save(Project(None, "projName", "gitRepo")), 5.seconds)
     assert (numberOfEntities == 1)
     val supplier : Seq[Project] = Await.result(modules.projectsDal.getProjectById(1), 5.seconds)
@@ -26,6 +26,8 @@ class ProjectsDAATest extends FunSuite with AbstractPersistenceTest with BeforeA
     assert (supplier.head.gitRepo.compareTo("gitRepo") == 0)
     val empty : Seq[Project] = Await.result(modules.projectsDal.getProjectById(2), 5.seconds)
     assert (empty.isEmpty)
+    val projects : Seq[Project] = Await.result(modules.projectsDal.getProjects(), 5.seconds)
+    assert (projects.length == 1)
   }
 
   override def afterAll(): Unit ={

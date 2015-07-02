@@ -42,7 +42,7 @@ class RoutesActor(modules: Configuration with PersistenceModule) extends Actor w
     def actorRefFactory = context
   }
 
-  def receive = runRoute( projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ swaggerService.routes ~
+  def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~ swaggerService.routes ~
     get {
       pathPrefix("") { pathEndOrSingleSlash {
         getFromResource("swagger-ui/index.html")
@@ -64,12 +64,23 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be fetched")
   ))
-  @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Ok")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
   def ProjectGetRoute = path("project" / IntNumber) { (projId) =>
     get {
       respondWithMediaType(`application/json`) {
         onComplete(modules.projectsDal.getProjectById(projId).mapTo[Vector[Project]]) {
+          case Success(projects) => complete(projects)
+          case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+        }
+      }
+    }}
+
+  @ApiOperation(httpMethod = "GET", response = classOf[Project], value = "Returns all projects")
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
+  def ProjectsGetRoute = path("project") {
+    get {
+      respondWithMediaType(`application/json`) {
+        onComplete(modules.projectsDal.getProjects().mapTo[Vector[Project]]) {
           case Success(projects) => complete(projects)
           case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
         }

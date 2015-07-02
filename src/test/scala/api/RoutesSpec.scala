@@ -41,6 +41,15 @@ class RoutesSpec  extends AbstractAPITest {
       }
     }
 
+    "return an array with 2 projects (2)" in {
+      modules.projectsDal.getProjects() returns Future(Vector(Project(Some(1), "name 1", "url 1"), Project(Some(2), "name 2", "url 2")))
+      Get("/project") ~> projects.ProjectsGetRoute ~> check {
+        handled must beTrue
+        status mustEqual OK
+        responseAs[Seq[Project]].length == 2
+      }
+    }
+
     "create a project with the json in post" in {
       modules.projectsDal.save(Project(None, "name 1", "url 1")) returns Future(1)
       Post("/project", SimpleProject("name 1", "url 1")) ~> projects.ProjectPostRoute ~> check {
