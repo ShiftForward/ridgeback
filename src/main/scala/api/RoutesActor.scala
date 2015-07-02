@@ -6,7 +6,7 @@ import com.gettyimages.spray.swagger._
 import com.typesafe.scalalogging.LazyLogging
 import com.wordnik.swagger.annotations._
 import com.wordnik.swagger.model.ApiInfo
-import entities.JsonProtocol
+import persistence.entities.JsonProtocol
 import persistence.entities._
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
@@ -31,22 +31,28 @@ class RoutesActor(modules: Configuration with PersistenceModule) extends Actor w
 
   val swaggerService = new SwaggerHttpService {
     override def apiTypes = Seq(typeOf[ProjectHttpService])
+
     override def apiVersion = "2.0"
+
     override def baseUrl = "/"
+
     override def docsPath = "api-docs"
+
     override def actorRefFactory = context
+
     override def apiInfo = Some(new ApiInfo("Ridgeback", " API Documentation", "No TOC", "dnpd.dd@gmail.com", "MIT", "http://opensource.org/licenses/MIT"))
   }
 
-  val projects = new ProjectHttpService(modules){
+  val projects = new ProjectHttpService(modules) {
     def actorRefFactory = context
   }
 
   def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~ swaggerService.routes ~
     get {
-      pathPrefix("") { pathEndOrSingleSlash {
-        getFromResource("swagger-ui/index.html")
-      }
+      pathPrefix("") {
+        pathEndOrSingleSlash {
+          getFromResource("swagger-ui/index.html")
+        }
       } ~
         getFromResourceDirectory("swagger-ui")
     })
@@ -73,7 +79,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
           case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
         }
       }
-    }}
+    }
+  }
 
   @ApiOperation(httpMethod = "GET", response = classOf[Project], value = "Returns all projects")
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
@@ -85,7 +92,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
           case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
         }
       }
-    }}
+    }
+  }
 
   @ApiOperation(value = "Add Project", nickname = "addProject", httpMethod = "POST", consumes = "application/json", produces = "text/plain; charset=UTF-8")
   @ApiImplicitParams(Array(
@@ -95,13 +103,14 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     new ApiResponse(code = 400, message = "Bad Request"),
     new ApiResponse(code = 201, message = "Entity Created")
   ))
-  def ProjectPostRoute = path("project"){
+  def ProjectPostRoute = path("project") {
     post {
-      entity(as[SimpleProject]){ projectToInsert =>  onComplete(modules.projectsDal.save(Project(None, projectToInsert.name, projectToInsert.gitRepo))) {
-        // ignoring the number of insertedEntities because in this case it should always be one, you might check this in other cases
-        case Success(insertedEntities) => complete(StatusCodes.Created)
-        case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-      }
+      entity(as[SimpleProject]) {
+        projectToInsert => onComplete(modules.projectsDal.save(Project(None, projectToInsert.name, projectToInsert.gitRepo))) {
+          // ignoring the number of insertedEntities because in this case it should always be one, you might check this in other cases
+          case Success(insertedEntities) => complete(StatusCodes.Created)
+          case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+        }
       }
     }
   }

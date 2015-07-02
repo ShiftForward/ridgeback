@@ -7,7 +7,6 @@ import utils.DbModule
 
 import scala.concurrent.Future
 
-
 trait ProjectsDal {
   def save(proj: Project) : Future[Int]
   def getProjects() : Future[Vector[Project]]

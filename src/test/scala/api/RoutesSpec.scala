@@ -25,7 +25,7 @@ class RoutesSpec  extends AbstractAPITest {
     "return an empty array of project" in {
       modules.projectsDal.getProjectById(1) returns Future(Vector())
 
-      Get("/project/1") ~> projects.ProjectGetRoute ~> check {
+      Get("/project/1") ~> projects.ProjectGetRoute ~> check { // TODO: change to 404
         handled must beTrue
         status mustEqual OK
         responseAs[Seq[Project]].isEmpty

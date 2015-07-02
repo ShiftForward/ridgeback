@@ -16,7 +16,7 @@ trait PersistenceModule {
   val projectsDal: ProjectsDal
 }
 
-trait PersistenceModuleImpl extends PersistenceModule with DbModule{
+trait PersistenceModuleImpl extends PersistenceModule with DbModule {
   this: Configuration  =>
 
   // use an alternative database configuration ex:

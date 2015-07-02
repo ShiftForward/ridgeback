@@ -1,4 +1,4 @@
-package entities
+package persistence.entities
 
 import persistence.entities.{SimpleProject, Project}
 import spray.json.DefaultJsonProtocol
