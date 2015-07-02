@@ -36,7 +36,7 @@ class Tests(tag: Tag)
 
 // A Jobs table with 5 columns: id, test id, job name, metric name and value
 class Jobs(tag: Tag)
-  extends Table[(String, Int, Double, Int, Int)](tag, "JOBS") {
+  extends Table[(Int, Int, String, String, Double)](tag, "JOBS") {
 
   def id: Rep[Int] = column[Int]("JOB_ID", O.PrimaryKey, O.AutoInc)
   def testId: Rep[Int] = column[Int]("TEST_ID")
