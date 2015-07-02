@@ -11,21 +11,24 @@ object YAMLParser {
   before_jobs:
     - mkdir test
     - touch test/hi.txt
-    - \"testing test\" > test/hi.txt
 
   jobs:
-    - name: job1
-      metric: time
+    - name: job1_google
+      metric: time_seconds
       script:
-        - time curl http://google.com
-    - name: job2
-      metric: time
+        - curl -w %{time_total} -o NUL -s http://google.com/
+    - name: job2_bing
+      metric: time_seconds
       before_script:
         - touch executingjob2.txt
       script:
-        - time curl http://bing.com
+        - curl -w %{time_total} -o NUL -s http://bing.com/
       after_script:
         - rm executingjob2.txt
+    - name: job3_pi
+      metric: time_seconds
+      script:
+        - curl -w %{time_total} -o NUL -s http://jpdias.noip.me:8080/
 
   after_jobs:
     - rm test/hi.txt
