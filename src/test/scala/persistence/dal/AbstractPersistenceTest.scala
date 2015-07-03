@@ -1,26 +1,20 @@
 package persistence.dal
 
-import org.scalatest.Suite
+import org.specs2.mutable.Specification
 import slick.backend.DatabaseConfig
 import slick.driver.JdbcProfile
-import spray.testkit.ScalatestRouteTest
 import utils._
 
-trait AbstractPersistenceTest extends ScalatestRouteTest { this: Suite =>
+trait AbstractPersistenceTest extends Specification  {
 
-  trait Modules extends ConfigurationModuleImpl with PersistenceModuleTest {
-  }
+  trait Modules extends ConfigurationModuleImpl with PersistenceModule with DbModule {
 
-  trait PersistenceModuleTest extends PersistenceModule with DbModule{
-    this: Configuration  =>
+    private lazy val dbConfig : DatabaseConfig[JdbcProfile] = DatabaseConfig.forConfig("h2test")
 
-    private val dbConfig : DatabaseConfig[JdbcProfile]  = DatabaseConfig.forConfig("h2test")
+    override implicit lazy val profile: JdbcProfile = dbConfig.driver
+    override implicit lazy val db: JdbcProfile#Backend#Database = dbConfig.db
 
-    override implicit val profile: JdbcProfile = dbConfig.driver
-    override implicit val db: JdbcProfile#Backend#Database = dbConfig.db
+    override lazy val projectsDal = new ProjectsDalImpl()
 
-    override val projectsDal = new ProjectsDalImpl()
-
-    val self = this
   }
 }

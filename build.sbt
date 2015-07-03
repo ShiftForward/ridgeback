@@ -24,11 +24,9 @@ lazy val ridgeback = (project in file(".")).
         "org.specs2"          %%  "specs2-mock"   % specs2V % "test",
         "org.yaml"            %   "snakeyaml"     % "1.15",
         "com.typesafe.slick"  %%  "slick"         % "3.0.0",
-        "org.scalatest"       %%  "scalatest"     % "2.2.5" % "test",
         "com.h2database"      %   "h2"            % "1.4.187",
         "com.zaxxer"          %   "HikariCP-java6" % "2.3.8",
-        "com.gettyimages"     %%  "spray-swagger" % "0.5.1",
-        "junit"               %   "junit"         % "4.12" % "test"
+        "com.gettyimages"     %%  "spray-swagger" % "0.5.1"
       )
     }
   )

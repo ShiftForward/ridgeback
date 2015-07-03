@@ -8,7 +8,7 @@ trait Profile {
   val profile: JdbcProfile
 }
 
-trait DbModule extends Profile{
+trait DbModule extends Profile {
   val db: JdbcProfile#Backend#Database
 }
 
