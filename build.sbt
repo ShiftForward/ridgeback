@@ -1,9 +1,20 @@
+import com.typesafe.sbt.SbtScalariform
+import scalariform.formatter.preferences._
+
+lazy val formattingPreferences = FormattingPreferences().
+  setPreference(AlignParameters, true).
+  setPreference(DoubleIndentClassDeclaration, true)
+
+lazy val formattingSettings = SbtScalariform.scalariformSettings ++ Seq(
+  ScalariformKeys.preferences in Compile := formattingPreferences,
+  ScalariformKeys.preferences in Test := formattingPreferences)
+
 lazy val commonSettings = Seq(
   organization := "eu.shiftforward",
   version := "0.0.1",
   scalaVersion := "2.11.7",
   scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
-)
+) ++ formattingSettings
 
 lazy val ridgeback = (project in file(".")).
   settings(commonSettings: _*).
