@@ -22,14 +22,14 @@ class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
     }
 
     "return valid project on get" in {
-      val supplier : Seq[Project] = Await.result(modules.projectsDal.getProjectById(1), Duration(5, SECONDS))
-      supplier.length === 1
-      supplier.head.name === "projName"
-      supplier.head.gitRepo === "gitRepo"
+      val supplier : Option[Project] = Await.result(modules.projectsDal.getProjectById(1), Duration(5, SECONDS))
+      supplier must beSome
+      supplier.get.name === "projName"
+      supplier.get.gitRepo === "gitRepo"
     }
 
     "return no projects on bad get" in {
-      modules.projectsDal.getProjectById(2) must empty[Vector[Project]].await
+      modules.projectsDal.getProjectById(2) must beNone.await
     }
 
     "return 2 projects after inserting another one" in {

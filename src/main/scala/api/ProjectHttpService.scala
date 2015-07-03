@@ -32,12 +32,15 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be fetched")
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Ok"),
+    new ApiResponse(code = 404, message = "Not Found")
+  ))
   def ProjectGetRoute = path("project" / IntNumber) { (projId) =>
     get {
       respondWithMediaType(`application/json`) {
-        onComplete(modules.projectsDal.getProjectById(projId).mapTo[Vector[Project]]) {
-          case Success(projects) => complete(projects)
+        onComplete(modules.projectsDal.getProjectById(projId).mapTo[Option[Project]]) {
+          case Success(project) => complete(project)
           case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
         }
       }

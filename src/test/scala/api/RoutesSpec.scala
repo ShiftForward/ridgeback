@@ -21,26 +21,25 @@ class RoutesSpec  extends AbstractAPITest {
 
   "Project Routes" should {
 
-    "return an empty array of project" in {
-      modules.projectsDal.getProjectById(1) returns Future(Vector())
+    "return 404" in {
+      modules.projectsDal.getProjectById(1) returns Future(None)
 
       Get("/project/1") ~> projects.ProjectGetRoute ~> check { // TODO: change to 404
         handled must beTrue
+        status mustEqual NotFound
+      }
+    }
+
+    "return 1 project" in {
+      modules.projectsDal.getProjectById(1) returns Future(Option(Project(Some(1), "name 1", "url 1")))
+      Get("/project/1") ~> projects.ProjectGetRoute ~> check {
+        handled must beTrue
         status mustEqual OK
-        responseAs[Seq[Project]].isEmpty
+        responseAs[Option[Project]].isDefined
       }
     }
 
     "return an array with 2 projects" in {
-      modules.projectsDal.getProjectById(1) returns Future(Vector(Project(Some(1), "name 1", "url 1"), Project(Some(2), "name 2", "url 2")))
-      Get("/project/1") ~> projects.ProjectGetRoute ~> check {
-        handled must beTrue
-        status mustEqual OK
-        responseAs[Seq[Project]].length == 2
-      }
-    }
-
-    "return an array with 2 projects (2)" in {
       modules.projectsDal.getProjects() returns Future(Vector(Project(Some(1), "name 1", "url 1"), Project(Some(2), "name 2", "url 2")))
       Get("/project") ~> projects.ProjectsGetRoute ~> check {
         handled must beTrue

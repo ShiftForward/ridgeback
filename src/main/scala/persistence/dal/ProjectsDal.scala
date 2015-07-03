@@ -10,7 +10,7 @@ import scala.concurrent.Future
 trait ProjectsDal {
   def save(proj: Project) : Future[Int]
   def getProjects() : Future[Vector[Project]]
-  def getProjectById(id: Int) : Future[Vector[Project]]
+  def getProjectById(id: Int) : Future[Option[Project]]
   def createTables() : Future[Unit]
 }
 
@@ -21,7 +21,7 @@ class ProjectsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit va
 
   override def getProjects() : Future[Vector[Project]] = { db.run(projects.result).mapTo[Vector[Project]] }
 
-  override def getProjectById(id: Int) : Future[Vector[Project]] = { db.run(projects.filter(_.id === id).result).mapTo[Vector[Project]] }
+  override def getProjectById(id: Int) : Future[Option[Project]] = { db.run(projects.filter(_.id === id).result.headOption).mapTo[Option[Project]] }
 
   override def createTables() : Future[Unit] = {
     db.run(DBIO.seq(projects.schema.create))
