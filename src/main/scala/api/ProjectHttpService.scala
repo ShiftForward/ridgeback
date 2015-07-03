@@ -33,7 +33,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   def ProjectGetRoute = path("project" / IntNumber) { (projId) =>
     get {
       respondWithMediaType(`application/json`) {
-        onComplete(modules.projectsDal.getProjectById(projId).mapTo[Option[Project]]) {
+        onComplete(modules.projectsDal.getProjectById(projId)) {
           case Success(project) => complete(project)
           case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
         }
@@ -46,7 +46,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   def ProjectsGetRoute = path("project") {
     get {
       respondWithMediaType(`application/json`) {
-        onComplete(modules.projectsDal.getProjects().mapTo[Vector[Project]]) {
+        onComplete(modules.projectsDal.getProjects()) {
           case Success(projects) => complete(projects)
           case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
         }
