@@ -16,19 +16,19 @@ object YAMLParser {
     - name: job1_google
       metric: time_seconds
       script:
-        - curl -w %{time_total} -o NUL -s http://google.com/
+        - curl -w %{time_total} -o /dev/null -s http://google.com/
     - name: job2_bing
       metric: time_seconds
       before_script:
         - touch executingjob2.txt
       script:
-        - curl -w %{time_total} -o NUL -s http://bing.com/
+        - curl -w %{time_total} -o /dev/null -s http://bing.com/
       after_script:
         - rm executingjob2.txt
     - name: job3_pi
       metric: time_seconds
       script:
-        - curl -w %{time_total} -o NUL -s http://jpdias.noip.me:8080/
+        - curl -w %{time_total} -o /dev/null -s http://jpdias.noip.me:8080/
 
   after_jobs:
     - rm test/hi.txt
