@@ -1,13 +1,8 @@
 package api
 
-import akka.actor.Actor
 import akka.util.Timeout
-import com.gettyimages.spray.swagger._
-import com.typesafe.scalalogging.LazyLogging
 import com.wordnik.swagger.annotations._
-import com.wordnik.swagger.model.ApiInfo
-import persistence.entities.JsonProtocol
-import persistence.entities._
+import persistence.entities.{JsonProtocol, _}
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
 import spray.http._
@@ -17,7 +12,6 @@ import utils.{Configuration, PersistenceModule}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success}
 
 @Api(value = "/project", description = "Operations about projects")

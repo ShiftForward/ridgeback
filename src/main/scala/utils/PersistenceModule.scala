@@ -27,6 +27,4 @@ trait PersistenceModuleImpl extends PersistenceModule with DbModule {
   override implicit val db: JdbcProfile#Backend#Database = dbConfig.db
 
   override val projectsDal = new ProjectsDalImpl()
-
-  val self = this
 }
