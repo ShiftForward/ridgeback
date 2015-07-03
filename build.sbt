@@ -25,10 +25,10 @@ lazy val ridgeback = (project in file(".")).
         "org.yaml"            %   "snakeyaml"     % "1.15",
         "com.typesafe.slick"  %%  "slick"         % "3.0.0",
         "org.scalatest"       %%  "scalatest"     % "2.2.5" % "test",
-        "com.h2database"      %   "h2"            % "1.3.176",
+        "com.h2database"      %   "h2"            % "1.4.187",
         "com.zaxxer"          %   "HikariCP-java6" % "2.3.8",
         "com.gettyimages"     %%  "spray-swagger" % "0.5.1",
-        "junit"               %   "junit"         % "4.11" % "test"
+        "junit"               %   "junit"         % "4.12" % "test"
       )
     }
   )
