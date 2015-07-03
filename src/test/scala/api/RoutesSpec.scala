@@ -1,7 +1,6 @@
 package api
 
-import entities.JsonProtocol
-import persistence.entities.{SimpleProject, Project}
+import persistence.entities.{JsonProtocol, SimpleProject, Project}
 import spray.httpx.SprayJsonSupport
 import spray.http._
 import StatusCodes._
