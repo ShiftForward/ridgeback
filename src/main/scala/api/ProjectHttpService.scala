@@ -41,7 +41,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     }
   }
 
-  @ApiOperation(httpMethod = "GET", response = classOf[Project], value = "Returns all projects")
+  @ApiOperation(httpMethod = "GET", response = classOf[Seq[Project]], value = "Returns all projects")
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
   def ProjectsGetRoute = path("project") {
     get {
