@@ -1,12 +1,12 @@
 import sys.process._
 
-object CommandFailed extends Exception { }
+object CommandFailed extends Exception {}
 
 object CommandExecutor {
-  def executeCommand(cmd : String) : Int = cmd !
-  def executeCommandOutput(cmd : String) : String = cmd !!
+  def executeCommand(cmd: String): Int = cmd !
+  def executeCommandOutput(cmd: String): String = cmd !!
 
-  def executeMultipleCommands(cmds : List[String]) : Boolean = {
+  def executeMultipleCommands(cmds: List[String]): Boolean = {
     try
       cmds.foreach(cmd => {
         val exitCode = executeCommand(cmd)
@@ -22,7 +22,7 @@ object CommandExecutor {
     true
   }
 
-  def executeMultipleCommandsOutput(cmds : List[String]) : List[String] = {
+  def executeMultipleCommandsOutput(cmds: List[String]): List[String] = {
     cmds.map(executeCommandOutput)
   }
 }

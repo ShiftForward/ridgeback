@@ -4,7 +4,7 @@ import scala.reflect._
 
 object YAMLParser {
   val text =
-  """
+    """
   before_jobs:
     - mkdir test
     - touch test/hi.txt
@@ -32,8 +32,8 @@ object YAMLParser {
     - rmdir test
   """.stripMargin
 
-  def loadYaml[T](text : String)(implicit tag: ClassTag[T]): T = {
-    val yaml =  new Yaml(new Constructor(tag.runtimeClass))
+  def loadYaml[T](text: String)(implicit tag: ClassTag[T]): T = {
+    val yaml = new Yaml(new Constructor(tag.runtimeClass))
     yaml.load(text).asInstanceOf[T]
   }
 }

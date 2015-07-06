@@ -1,11 +1,11 @@
 import java.sql.Timestamp
 
 import slick.driver.H2Driver.api._
-import slick.lifted.{ProvenShape, ForeignKeyQuery}
+import slick.lifted.{ ProvenShape, ForeignKeyQuery }
 
 // A Projects table with 3 columns: id, name, git repo url
 class Projects(tag: Tag)
-  extends Table[(Int, String, String)](tag, "PROJECTS") {
+    extends Table[(Int, String, String)](tag, "PROJECTS") {
 
   def id: Rep[Int] = column[Int]("PROJ_ID", O.PrimaryKey, O.AutoInc)
   def name: Rep[String] = column[String]("PROJ_NAME")
@@ -18,7 +18,7 @@ class Projects(tag: Tag)
 
 // A Tests table with 5 columns: id, project id, commit sha hash, start timestamp and end timestamp
 class Tests(tag: Tag)
-  extends Table[(Int, Int, String, Timestamp, Timestamp)](tag, "TESTS") {
+    extends Table[(Int, Int, String, Timestamp, Timestamp)](tag, "TESTS") {
 
   def id: Rep[Int] = column[Int]("TEST_ID", O.PrimaryKey, O.AutoInc)
   def projId: Rep[Int] = column[Int]("PROJ_ID")
@@ -36,7 +36,7 @@ class Tests(tag: Tag)
 
 // A Jobs table with 5 columns: id, test id, job name, metric name and value
 class Jobs(tag: Tag)
-  extends Table[(String, Int, Double, Int, Int)](tag, "JOBS") {
+    extends Table[(Int, Int, String, String, Double)](tag, "JOBS") {
 
   def id: Rep[Int] = column[Int]("JOB_ID", O.PrimaryKey, O.AutoInc)
   def testId: Rep[Int] = column[Int]("TEST_ID")

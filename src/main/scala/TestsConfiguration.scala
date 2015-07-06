@@ -21,7 +21,7 @@ class TestsConfiguration {
 }
 
 object JobDefinition {
-  def timeMetricToTimeUnit(metric : String) : TimeUnit = metric match {
+  def timeMetricToTimeUnit(metric: String): TimeUnit = metric match {
     case "time_days" => DAYS
     case "time_hours" => HOURS
     case "time_microseconds" => MICROSECONDS
@@ -44,7 +44,7 @@ class JobDefinition {
   @BeanProperty var script = new util.ArrayList[String]()
   @BeanProperty var after_script = new util.ArrayList[String]()
 
-  def runJob : Boolean = {
+  def runJob: Boolean = {
     // println("running job " + name)
     CommandExecutor.executeMultipleCommands(before_script.toList)
     val times = CommandExecutor.executeMultipleCommandsOutput(script.toList)
