@@ -1,7 +1,7 @@
 package utils
 
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.{ Fragments, Step }
 
 trait BeforeAllAfterAll extends Specification {
   // see http://bit.ly/11I9kFM (specs2 User Guide)

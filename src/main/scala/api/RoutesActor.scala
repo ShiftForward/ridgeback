@@ -6,7 +6,7 @@ import com.gettyimages.spray.swagger._
 import com.typesafe.scalalogging.LazyLogging
 import com.wordnik.swagger.model.ApiInfo
 import spray.routing._
-import utils.{Configuration, PersistenceModule}
+import utils.{ Configuration, PersistenceModule }
 
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
@@ -43,8 +43,8 @@ class RoutesActor(modules: Configuration with PersistenceModule) extends Actor w
   }
 
   def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
-                         tests.TestGetRoute ~ tests.TestsGetRoute ~ tests.TestPostRoute ~
-                         swaggerService.routes ~
+    tests.TestGetRoute ~ tests.TestsGetRoute ~ tests.TestPostRoute ~
+    swaggerService.routes ~
     get {
       pathPrefix("") {
         pathEndOrSingleSlash {

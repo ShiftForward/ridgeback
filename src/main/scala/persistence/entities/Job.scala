@@ -8,16 +8,14 @@ case class Job(
   testId: Option[Int],
   jobName: String,
   metricName: String,
-  value: Double
-)
+  value: Double)
 
 case class SimpleJob(
   projId: Option[Int],
   testId: Option[Int],
   jobName: String,
   metricName: String,
-  value: Double
-)
+  value: Double)
 
 trait Jobs extends Profile {
   import profile.api._

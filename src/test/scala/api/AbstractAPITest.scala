@@ -1,11 +1,11 @@
 package api
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import persistence.dal.{TestsDal, ProjectsDal}
+import persistence.dal.{ TestsDal, ProjectsDal }
 import spray.testkit.Specs2RouteTest
-import utils.{ActorModule, ConfigurationModuleImpl, PersistenceModule}
+import utils.{ ActorModule, ConfigurationModuleImpl, PersistenceModule }
 
 trait AbstractAPITest extends Specification with Specs2RouteTest with Mockito {
 

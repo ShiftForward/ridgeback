@@ -2,7 +2,7 @@ package utils
 
 import java.io.File
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 
 trait Configuration {
   def config: Config
