@@ -1,5 +1,8 @@
 package api
 
+import javax.ws.rs.Path
+
+import akka.actor.Props
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
 import persistence.entities.{ JsonProtocol, _ }
@@ -8,9 +11,10 @@ import spray.http.StatusCodes._
 import spray.http._
 import spray.httpx.SprayJsonSupport
 import spray.routing._
-import utils.{ Configuration, PersistenceModule }
+import utils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
@@ -65,6 +69,26 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
           onComplete(modules.projectsDal.save(Project(None, projectToInsert.name, projectToInsert.gitRepo))) {
             // ignoring the number of insertedEntities because in this case it should always be one, you might check this in other cases
             case Success(insertedEntities) => complete(StatusCodes.Created)
+            case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+          }
+      }
+    }
+  }
+
+  @Path("/{projId}/trigger")
+  @ApiOperation(value = "Trigger Project Build", nickname = "triggerProject", httpMethod = "POST", consumes = "text/plain; charset=UTF-8", produces = "text/plain; charset=UTF-8")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be fetched"),
+    new ApiImplicitParam(name = "body", value = "YAML Definition", dataType = "String", required = true, paramType = "body")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Ok"),
+    new ApiResponse(code = 404, message = "Not Found")))
+  def ProjectTriggerRoute = path("project" / IntNumber / "trigger") { (projId) =>
+    post {
+      entity(as[String]) {
+        yamlStr =>
+          onComplete(Future { actorRefFactory.actorOf(Props[TestRunnerActor]) ! Run(yamlStr) }) {
+            case Success(v) => complete(StatusCodes.Created) // TODO: return test id
             case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
       }

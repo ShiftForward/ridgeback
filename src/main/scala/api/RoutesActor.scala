@@ -42,7 +42,7 @@ class RoutesActor(modules: Configuration with PersistenceModule) extends Actor w
     def actorRefFactory = context
   }
 
-  def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
+  def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~ projects.ProjectTriggerRoute ~
     tests.TestGetRoute ~ tests.TestsGetRoute ~ tests.TestPostRoute ~
     swaggerService.routes ~
     get {

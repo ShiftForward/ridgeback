@@ -1,12 +1,15 @@
+package utils
+
 import javax.management.openmbean.KeyAlreadyExistsException
 
 import akka.actor.Actor
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.Constructor
 import persistence.entities.{ JobDefinition, TestsConfiguration }
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
-import sys.process._
+import scala.sys.process._
 
 case class BadConfiguration(error: String) extends Exception {}
 case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends Exception {}
@@ -59,6 +62,7 @@ class TestRunnerActor extends Actor {
   private def processConfig(test: TestsConfiguration): Unit = {
 
     test.before_jobs.foreach(cmd => {
+      println("cmd: " + cmd)
       val exitCode = cmd.!(new ConsoleProcessLogger)
       if (exitCode != 0) throw CommandFailed(cmd, exitCode)
     })
@@ -69,6 +73,7 @@ class TestRunnerActor extends Actor {
       val metric = job.metric
 
       job.before_script.foreach(cmd => {
+        println("cmd: " + cmd)
         val exitCode = cmd.!(new ConsoleProcessLogger)
         if (exitCode != 0) throw CommandFailed(cmd, exitCode, Some(jobName))
       })
@@ -76,6 +81,7 @@ class TestRunnerActor extends Actor {
       var lastOutput = ""
 
       job.script.foreach(cmd => {
+        println("cmd: " + cmd)
         try {
           lastOutput = cmd.!!(new ConsoleProcessLogger)
         } catch {
@@ -91,6 +97,7 @@ class TestRunnerActor extends Actor {
       }
 
       job.after_script.foreach(cmd => {
+        println("cmd: " + cmd)
         val exitCode = cmd.!(new ConsoleProcessLogger)
         if (exitCode != 0) throw CommandFailed(cmd, exitCode, Some(jobName))
       })
@@ -98,6 +105,7 @@ class TestRunnerActor extends Actor {
     })
 
     test.after_jobs.foreach(cmd => {
+      println("cmd: " + cmd)
       val exitCode = cmd.!(new ConsoleProcessLogger)
       if (exitCode != 0) throw CommandFailed(cmd, exitCode)
     })
