@@ -21,7 +21,7 @@ class RoutesActor(modules: Configuration with PersistenceModule) extends Actor w
   modules.projectsDal.createTables()
 
   val swaggerService = new SwaggerHttpService {
-    override def apiTypes = Seq(typeOf[ProjectHttpService])
+    override def apiTypes = Seq(typeOf[ProjectHttpService], typeOf[TestHttpService])
 
     override def apiVersion = "2.0"
 
@@ -38,7 +38,13 @@ class RoutesActor(modules: Configuration with PersistenceModule) extends Actor w
     def actorRefFactory = context
   }
 
-  def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~ swaggerService.routes ~
+  val tests = new TestHttpService(modules) {
+    def actorRefFactory = context
+  }
+
+  def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
+                         tests.TestGetRoute ~ tests.TestsGetRoute ~ tests.TestPostRoute ~
+                         swaggerService.routes ~
     get {
       pathPrefix("") {
         pathEndOrSingleSlash {

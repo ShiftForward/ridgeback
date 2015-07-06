@@ -1,6 +1,6 @@
 package utils
 
-import persistence.dal.{ProjectsDalImpl, ProjectsDal}
+import persistence.dal.{TestsDal, TestsDalImpl, ProjectsDalImpl, ProjectsDal}
 import slick.backend.DatabaseConfig
 import slick.driver.JdbcProfile
 
@@ -14,6 +14,7 @@ trait DbModule extends Profile {
 
 trait PersistenceModule {
   val projectsDal: ProjectsDal
+  val testsDal: TestsDal
 }
 
 trait PersistenceModuleImpl extends PersistenceModule with DbModule {
@@ -27,4 +28,5 @@ trait PersistenceModuleImpl extends PersistenceModule with DbModule {
   override implicit val db: JdbcProfile#Backend#Database = dbConfig.db
 
   override val projectsDal = new ProjectsDalImpl()
+  override val testsDal = new TestsDalImpl()
 }

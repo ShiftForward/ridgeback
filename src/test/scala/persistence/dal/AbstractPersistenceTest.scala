@@ -15,5 +15,6 @@ trait AbstractPersistenceTest extends Specification  {
     override implicit lazy val db: JdbcProfile#Backend#Database = dbConfig.db
 
     override lazy val projectsDal = new ProjectsDalImpl()
+    override lazy val testsDal = new TestsDalImpl()
   }
 }
