@@ -1,4 +1,4 @@
-import akka.actor.Props
+import akka.actor.{ ActorRef, Inbox, ActorSystem, Props }
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
@@ -24,4 +24,44 @@ object Boot extends App {
 
   // start a new HTTP server on the configured port with our service actor as the handler
   IO(Http) ? Http.Bind(service, interface = config.getString("app.interface"), port = config.getInt("app.port"))
+}
+
+object TestRunnerBoot extends App {
+  val text =
+    """
+  before_jobs:
+    - mkdir test
+    - touch test/hi.txt
+
+  jobs:
+    - name: job1_google
+      metric: time_seconds
+      script:
+        - curl -w %{time_total} -o /dev/null -s http://google.com/
+    - name: job2_bing
+      metric: time_seconds
+      before_script:
+        - touch executingjob2.txt
+      script:
+        - curl -w %{time_total} -o /dev/null -s http://bing.com/
+      after_script:
+        - rm executingjob2.txt
+    - name: job3_pi
+      metric: time_seconds
+      script:
+        - curl -w %{time_total} -o /dev/null -s http://jpdias.noip.me:8080/
+
+  after_jobs:
+    - rm test/hi.txt
+    - rmdir test
+    """.stripMargin
+
+  val system = ActorSystem("helloakka")
+  val testRunner = system.actorOf(Props[TestRunnerActor], "TestRunner")
+  val inbox = Inbox.create(system)
+
+  inbox.send(testRunner, Run(text))
+
+  val TestError(ex) = inbox.receive(50.seconds)
+  println(s"Ex: $ex")
 }
