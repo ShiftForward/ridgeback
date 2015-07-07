@@ -12,11 +12,9 @@ import scala.sys.process._
 import scala.util.{ Failure, Success, Try }
 
 trait TestRunnerException extends Exception
-case class BadConfiguration(error: String) extends Exception(error) with TestRunnerException
+case class BadConfiguration(errors: Seq[String]) extends Exception(errors.mkString(";")) with TestRunnerException
 case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends TestRunnerException
 case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends TestRunnerException
-
-case class ParsingError(error: String)
 
 case class Run(yamlStr: String)
 case class TestError(ex: Throwable)
@@ -26,59 +24,56 @@ object Finished
 class TestRunnerActor extends Actor {
   override def receive = {
     case Run(yamlStr) =>
-      try {
-        parseConfig(yamlStr).fold(
-          error => sender ! TestError(BadConfiguration(error.error)),
-          config => processConfig(config))
-      } catch {
-        case ex: TestRunnerException => sender ! TestError(ex)
-      } finally {
-        sender ! Finished
+
+      Try(parseConfig(yamlStr).map(processConfig)) match {
+        case Failure(ex) => sender ! TestError(ex)
+        case Success(_) => ;
       }
+
+      sender ! Finished
   }
 
   private val validMetrics = "time_days" :: "time_hours" :: "time_microseconds" :: "time_milliseconds" :: "time_minute" ::
     "time_nanoseconds" :: "time_seconds" :: "ignore" :: Nil // :: "perf_cpu" :: "perf_ram" ...
 
-  private def parseConfig(yamlStr: String): Either[ParsingError, TestsConfiguration] = {
+  private def parseConfig(yamlStr: String): Try[TestsConfiguration] = {
     val yaml = new Yaml(new Constructor(classOf[TestsConfiguration]))
     val config = (Try(yaml.load(yamlStr).asInstanceOf[TestsConfiguration]) recover {
-      case e: YAMLException => return Left(ParsingError(e.getMessage))
+      case e: YAMLException => throw BadConfiguration(Seq(e.getMessage))
     }) get
 
-    if (config == null)
-      return Left(ParsingError("Could not parse"))
-
-    if (config.jobs.isEmpty) {
-      return Left(ParsingError("Test has no jobs"))
+    if (config == null) {
+      throw BadConfiguration(Seq("Could not parse"))
     }
 
-    config.jobs.foreach(job => {
+    if (config.jobs.isEmpty) {
+      throw BadConfiguration(Seq("Test has no jobs"))
+    }
+
+    val errors = config.jobs.flatMap(job => {
       val jobName = job.getName
 
       if (job.name == null || job.name.isEmpty) {
-        return Left(ParsingError("A job is missing its name"))
-      }
-
-      if (job.metric == null || job.metric.isEmpty) {
-        return Left(ParsingError(s"$jobName is missing its metric"))
-      }
-
-      if (job.script.isEmpty) {
-        return Left(ParsingError(s"$jobName does not have any command in script"))
-      }
-
-      if (!validMetrics.contains(job.getMetric)) {
+        Some("A job is missing its name")
+      } else if (job.metric == null || job.metric.isEmpty) {
+        Some(s"$jobName is missing its metric")
+      } else if (job.script.isEmpty) {
+        Some(s"$jobName does not have any command in script")
+      } else if (!validMetrics.contains(job.getMetric)) {
         val metric = job.getMetric
-        return Left(ParsingError(s"Unknown metric $metric in $jobName"))
-      }
-
-      if (job.script.isEmpty) {
-        return Left(ParsingError(s"$jobName does not have any command in script"))
+        Some(s"Unknown metric $metric in $jobName")
+      } else if (job.script.isEmpty) {
+        Some(s"$jobName does not have any command in script")
+      } else {
+        None
       }
     })
 
-    Right(config)
+    if (errors.nonEmpty) {
+      throw BadConfiguration(errors.toList)
+    }
+
+    Success(config)
   }
 
   private def processConfig(test: TestsConfiguration): Unit = {
