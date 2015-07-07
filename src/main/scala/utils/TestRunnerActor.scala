@@ -11,9 +11,10 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
 import scala.sys.process._
 
-case class BadConfiguration(error: String) extends Exception {}
-case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends Exception {}
-case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends Exception {}
+trait TestRunnerException extends Exception
+case class BadConfiguration(error: String) extends TestRunnerException
+case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends TestRunnerException
+case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends TestRunnerException
 
 case class Run(yamlStr: String)
 case class TestError(ex: Throwable)
@@ -23,10 +24,10 @@ class TestRunnerActor extends Actor {
   override def receive = {
     case Run(yamlStr) =>
       try {
-        val config = validateYaml(yamlStr)
+        val config = parseConfig(yamlStr)
         processConfig(config)
       } catch {
-        case ex: Throwable => sender ! TestError(ex)
+        case ex: TestRunnerException => sender ! TestError(ex)
       } finally {
         sender ! Finished
       }
@@ -35,7 +36,7 @@ class TestRunnerActor extends Actor {
   private val validMetrics = "time_days" :: "time_hours" :: "time_microseconds" :: "time_milliseconds" :: "time_minute" ::
     "time_nanoseconds" :: "time_seconds" :: Nil // :: "perf_cpu" :: "perf_ram" ...
 
-  private def validateYaml(yamlStr: String): TestsConfiguration = {
+  private def parseConfig(yamlStr: String): TestsConfiguration = {
     try {
       val yaml = new Yaml(new Constructor(classOf[TestsConfiguration]))
       val config = yaml.load(yamlStr).asInstanceOf[TestsConfiguration]
@@ -63,7 +64,7 @@ class TestRunnerActor extends Actor {
 
     test.before_jobs.foreach(cmd => {
       println("cmd: " + cmd)
-      val exitCode = cmd.!(new ConsoleProcessLogger)
+      val exitCode = cmd.!(ConsoleProcessLogger)
       if (exitCode != 0) throw CommandFailed(cmd, exitCode)
     })
 
@@ -74,7 +75,7 @@ class TestRunnerActor extends Actor {
 
       job.before_script.foreach(cmd => {
         println("cmd: " + cmd)
-        val exitCode = cmd.!(new ConsoleProcessLogger)
+        val exitCode = cmd.!(ConsoleProcessLogger)
         if (exitCode != 0) throw CommandFailed(cmd, exitCode, Some(jobName))
       })
 
@@ -83,9 +84,10 @@ class TestRunnerActor extends Actor {
       job.script.foreach(cmd => {
         println("cmd: " + cmd)
         try {
-          lastOutput = cmd.!!(new ConsoleProcessLogger)
+          lastOutput = cmd.!!(ConsoleProcessLogger)
         } catch {
-          case ex: KeyAlreadyExistsException => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, Some(jobName)) // "Nonzero exit value: XX"
+          case ex: RuntimeException => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, // "Nonzero exit value: XX"
+            Some(jobName))
         }
       })
 
@@ -98,7 +100,7 @@ class TestRunnerActor extends Actor {
 
       job.after_script.foreach(cmd => {
         println("cmd: " + cmd)
-        val exitCode = cmd.!(new ConsoleProcessLogger)
+        val exitCode = cmd.!(ConsoleProcessLogger)
         if (exitCode != 0) throw CommandFailed(cmd, exitCode, Some(jobName))
       })
 
@@ -106,14 +108,14 @@ class TestRunnerActor extends Actor {
 
     test.after_jobs.foreach(cmd => {
       println("cmd: " + cmd)
-      val exitCode = cmd.!(new ConsoleProcessLogger)
+      val exitCode = cmd.!(ConsoleProcessLogger)
       if (exitCode != 0) throw CommandFailed(cmd, exitCode)
     })
   }
 }
 
 // TODO: eventually change this class to "write" to WebSockets or pusher.com
-class ConsoleProcessLogger() extends ProcessLogger {
+object ConsoleProcessLogger extends ProcessLogger {
   def out(s: => String): Unit = println("Out: " + s)
   def err(s: => String): Unit = println("Err: " + s)
   def buffer[T](f: => T): T = f

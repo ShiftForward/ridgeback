@@ -87,10 +87,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     post {
       entity(as[String]) {
         yamlStr =>
-          onComplete(Future { actorRefFactory.actorOf(Props[TestRunnerActor]) ! Run(yamlStr) }) {
-            case Success(v) => complete(StatusCodes.Created) // TODO: return test id
-            case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-          }
+          actorRefFactory.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr)
+          complete(StatusCodes.Created) // TODO: return test id
       }
     }
   }
