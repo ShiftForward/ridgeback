@@ -3,6 +3,7 @@ package core
 import akka.actor.Actor
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.Constructor
+import org.yaml.snakeyaml.error.YAMLException
 import persistence.entities.{ JobDefinition, TestsConfiguration }
 
 import scala.collection.JavaConversions._
@@ -11,12 +12,13 @@ import scala.sys.process._
 import scala.util.{ Failure, Success, Try }
 
 trait TestRunnerException extends Exception
-case class BadConfiguration(error: String) extends TestRunnerException
+case class BadConfiguration(error: String) extends Exception(error) with TestRunnerException
 case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends TestRunnerException
 case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends TestRunnerException
 
 case class Run(yamlStr: String)
 case class TestError(ex: Throwable)
+case class CommandExecuted(cmd: String)
 object Finished
 
 class TestRunnerActor extends Actor {
@@ -33,15 +35,34 @@ class TestRunnerActor extends Actor {
   }
 
   private val validMetrics = "time_days" :: "time_hours" :: "time_microseconds" :: "time_milliseconds" :: "time_minute" ::
-    "time_nanoseconds" :: "time_seconds" :: Nil // :: "perf_cpu" :: "perf_ram" ...
+    "time_nanoseconds" :: "time_seconds" :: "ignore" :: Nil // :: "perf_cpu" :: "perf_ram" ...
 
   private def parseConfig(yamlStr: String): TestsConfiguration = {
     try {
       val yaml = new Yaml(new Constructor(classOf[TestsConfiguration]))
       val config = yaml.load(yamlStr).asInstanceOf[TestsConfiguration]
 
+      if (config == null)
+        throw BadConfiguration("Could not parse")
+
+      if (config.jobs.isEmpty) {
+        throw BadConfiguration("Test has no jobs")
+      }
+
       config.jobs.foreach(job => {
         val jobName = job.getName
+
+        if (job.name == null || job.name.isEmpty) {
+          throw BadConfiguration("A job is missing its name")
+        }
+
+        if (job.metric == null || job.metric.isEmpty) {
+          throw BadConfiguration(s"$jobName is missing its metric");
+        }
+
+        if (job.script.isEmpty) {
+          throw BadConfiguration(s"$jobName does not have any command in script")
+        }
 
         if (!validMetrics.contains(job.getMetric)) {
           val metric = job.getMetric
@@ -55,7 +76,9 @@ class TestRunnerActor extends Actor {
 
       config
     } catch {
-      case e: Exception => throw BadConfiguration(e.getMessage)
+      case e: BadConfiguration =>
+        println(e.getMessage); throw e
+      case e: YAMLException => println(e.getMessage); throw BadConfiguration(e.getMessage)
     }
   }
 
@@ -71,11 +94,14 @@ class TestRunnerActor extends Actor {
       executeCommands(job.before_script.toList, Some(jobName))
 
       val lastOutput = executeCommandsOutput(job.script.toList)
-      val duration = Try(Duration(lastOutput.toDouble, JobDefinition.timeMetricToTimeUnit(job.metric)))
 
-      duration match {
-        case Success(d) => println(s"OUT: $jobName took $d ($metric)")
-        case Failure(e) => throw InvalidOutput(job.script.last, Some(jobName))
+      if (metric != "ignore") {
+        val duration = Try(Duration(lastOutput.toDouble, JobDefinition.timeMetricToTimeUnit(job.metric)))
+
+        duration match {
+          case Success(d) => println(s"OUT: $jobName took $d ($metric)")
+          case Failure(e) => throw InvalidOutput(job.script.last, Some(jobName))
+        }
       }
 
       executeCommands(job.after_script.toList, Some(jobName))
@@ -88,6 +114,8 @@ class TestRunnerActor extends Actor {
   private def executeCommands(cmds: List[String], jobName: Option[String] = None): Unit = {
     cmds.foreach(cmd => {
       println("cmd: " + cmd)
+      sender ! CommandExecuted(cmd)
+
       val exitCode = cmd ! ConsoleProcessLogger
       if (exitCode != 0) throw CommandFailed(cmd, exitCode, jobName)
     })
@@ -99,6 +127,7 @@ class TestRunnerActor extends Actor {
 
     cmds.foreach(cmd => {
       println("cmd: " + cmd)
+      sender ! CommandExecuted(cmd)
 
       Try(cmd !! ConsoleProcessLogger) match {
         case Success(o) => lastOutput = o
