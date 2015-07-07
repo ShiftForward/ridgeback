@@ -41,7 +41,7 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
 
   @ApiOperation(httpMethod = "GET", response = classOf[Seq[Test]], value = "Returns all tests, optionally by project")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "query", value = "ID of project that needs tests to be fetched")))
+    new ApiImplicitParam(name = "projId", required = false, dataType = "integer", paramType = "query", value = "ID of project that needs tests to be fetched")))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
   def TestsGetRoute = path("test") {
     parameters('projId.?) { (projIdStr: Option[String]) =>
