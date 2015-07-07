@@ -5,7 +5,7 @@ import org.specs2.time.NoTimeConversions
 
 import akka.actor._
 import akka.testkit._
-import scala.concurrent.duration._
+import scala.concurrent.duration.Duration
 
 /* A tiny class that can be used as a Specs2 'context'. */
 abstract class AkkaTestkitSpecs2Support extends TestKit(ActorSystem()) with After with ImplicitSender {
@@ -26,11 +26,11 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
 
         jobs:
           - name: job1
-            metric: ignore
+            source: ignore
             script:
               - true 3
           - name: job2
-            metric: ignore
+            source: ignore
             before_script:
               - true 4
             script:
@@ -61,18 +61,33 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(TestError(BadConfiguration("Could not parse")))
     }
 
-    "fail on invalid metrics" in new AkkaTestkitSpecs2Support {
+    "fail on invalid source" in new AkkaTestkitSpecs2Support {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run(
         """
           jobs:
             - name: job1
-              metric: bad
+              source: bad
               script:
                 - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration("Unknown metric bad in job1")))
+      expectMsg(TestError(BadConfiguration("job1 has unknown source bad")))
+    }
+
+    "fail on invalid format" in new AkkaTestkitSpecs2Support {
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: output
+              format: bad
+              script:
+                - true
+        """.stripMargin)
+
+      expectMsg(TestError(BadConfiguration("job1 format bad doesn't match source output")))
     }
 
     "fail on missing required job name" in new AkkaTestkitSpecs2Support {
@@ -87,7 +102,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(TestError(BadConfiguration("A job is missing its name")))
     }
 
-    "fail on missing required job metric" in new AkkaTestkitSpecs2Support {
+    "fail on missing required job source" in new AkkaTestkitSpecs2Support {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run(
         """
@@ -97,7 +112,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration("job1 is missing its metric")))
+      expectMsg(TestError(BadConfiguration("job1 is missing its source")))
     }
 
     "fail on missing jobs" in new AkkaTestkitSpecs2Support {
@@ -126,7 +141,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
             - mkdir ttt
           jobs:
             - name: job1
-              metric: ignore
+              source: ignore
               script:
                 - true
           after_jobs:
@@ -137,6 +152,40 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(CommandExecuted("true"))
       expectMsg(CommandExecuted("rmdir ttt"))
       expectMsg(Finished)
+    }
+
+    "time source works correctly" in new AkkaTestkitSpecs2Support {
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: time
+              script:
+                - sleep 1
+                - sleep 1
+        """.stripMargin)
+
+      expectMsgClass(classOf[CommandExecuted])
+      val msg = expectMsgClass(classOf[MetricOutput])
+      msg.m must haveSuperclass[Duration]
+    }
+
+    "output source works correctly" in new AkkaTestkitSpecs2Support {
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: output
+              format: seconds
+              script:
+                - curl -w %{time_total} -o NUL -s http://google.com/
+        """.stripMargin)
+
+      expectMsgClass(classOf[CommandExecuted])
+      val msg = expectMsgClass(classOf[MetricOutput])
+      msg.m must haveSuperclass[Duration]
     }
   }
 }

@@ -17,27 +17,28 @@ class TestsConfiguration {
 }
 
 object JobDefinition {
-  def timeMetricToTimeUnit(metric: String): TimeUnit = metric match {
-    case "time_days" => DAYS
-    case "time_hours" => HOURS
-    case "time_microseconds" => MICROSECONDS
-    case "time_milliseconds" => MILLISECONDS
-    case "time_minute" => MINUTES
-    case "time_nanoseconds" => NANOSECONDS
-    case "time_seconds" => SECONDS
+  def timeFormatToTimeUnit(metric: String): TimeUnit = metric match {
+    case "days" => DAYS
+    case "hours" => HOURS
+    case "microseconds" => MICROSECONDS
+    case "milliseconds" => MILLISECONDS
+    case "minute" => MINUTES
+    case "nanoseconds" => NANOSECONDS
+    case "seconds" => SECONDS
     case _ => SECONDS
   }
 }
 
 class JobDefinition {
   @BeanProperty var name: String = null
-  @BeanProperty var metric: String = null
+  @BeanProperty var source: String = null
+  @BeanProperty var format: String = null
   @BeanProperty var before_script = new util.ArrayList[String]()
   @BeanProperty var script = new util.ArrayList[String]()
   @BeanProperty var after_script = new util.ArrayList[String]()
 
   override def toString: String = {
-    "name: %s, metric: %s, before: %s, script: %s after: %s".format(name, metric, before_script.toString,
+    "name: %s, source: %s, format: %s, before: %s, script: %s after: %s".format(name, source, format, before_script.toString,
       script.toString, after_script.toString)
   }
 }
