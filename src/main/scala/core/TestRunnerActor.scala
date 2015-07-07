@@ -51,19 +51,16 @@ class TestRunnerActor extends Actor {
     }
 
     val errors = config.jobs.flatMap(job => {
-      val jobName = job.getName
-
       if (job.name == null || job.name.isEmpty) {
         Some("A job is missing its name")
       } else if (job.metric == null || job.metric.isEmpty) {
-        Some(s"$jobName is missing its metric")
+        Some(s"${job.name} is missing its metric")
       } else if (job.script.isEmpty) {
-        Some(s"$jobName does not have any command in script")
+        Some(s"${job.name} does not have any command in script")
       } else if (!validMetrics.contains(job.getMetric)) {
-        val metric = job.getMetric
-        Some(s"Unknown metric $metric in $jobName")
+        Some(s"Unknown metric ${job.metric} in ${job.name}")
       } else if (job.script.isEmpty) {
-        Some(s"$jobName does not have any command in script")
+        Some(s"${job.name} does not have any command in script")
       } else {
         None
       }
@@ -81,24 +78,20 @@ class TestRunnerActor extends Actor {
     executeCommands(test.before_jobs.toList)
 
     test.jobs.foreach(job => {
-
-      val jobName = job.name
-      val metric = job.metric
-
-      executeCommands(job.before_script.toList, Some(jobName))
+      executeCommands(job.before_script.toList, Some(job.name))
 
       val lastOutput = executeCommandsOutput(job.script.toList)
 
-      if (metric != "ignore") {
+      if (job.metric != "ignore") {
         val duration = Try(Duration(lastOutput.toDouble, JobDefinition.timeMetricToTimeUnit(job.metric)))
 
         duration match {
-          case Success(d) => println(s"OUT: $jobName took $d ($metric)")
-          case Failure(e) => throw InvalidOutput(job.script.last, Some(jobName))
+          case Success(d) => println(s"OUT: ${job.name} took $d (${job.metric})")
+          case Failure(e) => throw InvalidOutput(job.script.last, Some(job.name))
         }
       }
 
-      executeCommands(job.after_script.toList, Some(jobName))
+      executeCommands(job.after_script.toList, Some(job.name))
     })
 
     executeCommands(test.after_jobs.toList)
