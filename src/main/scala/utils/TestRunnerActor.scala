@@ -1,7 +1,5 @@
 package utils
 
-import javax.management.openmbean.KeyAlreadyExistsException
-
 import akka.actor.Actor
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.Constructor
@@ -10,6 +8,7 @@ import persistence.entities.{ JobDefinition, TestsConfiguration }
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
 import scala.sys.process._
+import scala.util.{ Success, Failure, Try }
 
 trait TestRunnerException extends Exception
 case class BadConfiguration(error: String) extends TestRunnerException
@@ -72,12 +71,11 @@ class TestRunnerActor extends Actor {
       executeCommands(job.before_script.toList, Some(jobName))
 
       val lastOutput = executeCommandsOutput(job.script.toList)
+      val duration = Try(Duration(lastOutput.toDouble, JobDefinition.timeMetricToTimeUnit(job.metric)))
 
-      try {
-        val duration = Duration(lastOutput.toDouble, JobDefinition.timeMetricToTimeUnit(job.metric))
-        println(s"OUT: $jobName took $duration ($metric)")
-      } catch {
-        case ex: NumberFormatException => throw InvalidOutput(job.script.last, Some(jobName))
+      duration match {
+        case Success(d) => println(s"OUT: $jobName took $d ($metric)")
+        case Failure(e) => throw InvalidOutput(job.script.last, Some(jobName))
       }
 
       executeCommands(job.after_script.toList, Some(jobName))
@@ -86,24 +84,26 @@ class TestRunnerActor extends Actor {
     executeCommands(test.after_jobs.toList)
   }
 
-  private def executeCommands(cmds : List[String], jobName: Option[String] = None): Unit = {
+  // executes commands in a shell and throws if any command fails
+  private def executeCommands(cmds: List[String], jobName: Option[String] = None): Unit = {
     cmds.foreach(cmd => {
       println("cmd: " + cmd)
-      val exitCode = cmd.!(ConsoleProcessLogger)
+      val exitCode = cmd ! ConsoleProcessLogger
       if (exitCode != 0) throw CommandFailed(cmd, exitCode, jobName)
     })
   }
 
-  private def executeCommandsOutput(cmds : List[String], jobName: Option[String] = None): String = {
+  // similar to executeCommands however it returns the output of the last command
+  private def executeCommandsOutput(cmds: List[String], jobName: Option[String] = None): String = {
     var lastOutput = ""
 
     cmds.foreach(cmd => {
       println("cmd: " + cmd)
-      try {
-        lastOutput = cmd.!!(ConsoleProcessLogger)
-      } catch {
-        case ex: RuntimeException => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, // "Nonzero exit value: XX"
-          jobName)
+
+      Try(cmd !! ConsoleProcessLogger) match {
+        case Success(o) => lastOutput = o
+        case Failure(ex: RuntimeException) => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, jobName) // "Nonzero exit value: XX"
+        case Failure(ex) => throw CommandFailed(cmd, -1, jobName)
       }
     })
 
