@@ -62,34 +62,16 @@ class TestRunnerActor extends Actor {
 
   private def processConfig(test: TestsConfiguration): Unit = {
 
-    test.before_jobs.foreach(cmd => {
-      println("cmd: " + cmd)
-      val exitCode = cmd.!(ConsoleProcessLogger)
-      if (exitCode != 0) throw CommandFailed(cmd, exitCode)
-    })
+    executeCommands(test.before_jobs.toList)
 
     test.jobs.foreach(job => {
 
       val jobName = job.name
       val metric = job.metric
 
-      job.before_script.foreach(cmd => {
-        println("cmd: " + cmd)
-        val exitCode = cmd.!(ConsoleProcessLogger)
-        if (exitCode != 0) throw CommandFailed(cmd, exitCode, Some(jobName))
-      })
+      executeCommands(job.before_script.toList, Some(jobName))
 
-      var lastOutput = ""
-
-      job.script.foreach(cmd => {
-        println("cmd: " + cmd)
-        try {
-          lastOutput = cmd.!!(ConsoleProcessLogger)
-        } catch {
-          case ex: RuntimeException => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, // "Nonzero exit value: XX"
-            Some(jobName))
-        }
-      })
+      val lastOutput = executeCommandsOutput(job.script.toList)
 
       try {
         val duration = Duration(lastOutput.toDouble, JobDefinition.timeMetricToTimeUnit(job.metric))
@@ -98,19 +80,34 @@ class TestRunnerActor extends Actor {
         case ex: NumberFormatException => throw InvalidOutput(job.script.last, Some(jobName))
       }
 
-      job.after_script.foreach(cmd => {
-        println("cmd: " + cmd)
-        val exitCode = cmd.!(ConsoleProcessLogger)
-        if (exitCode != 0) throw CommandFailed(cmd, exitCode, Some(jobName))
-      })
-
+      executeCommands(job.after_script.toList, Some(jobName))
     })
 
-    test.after_jobs.foreach(cmd => {
+    executeCommands(test.after_jobs.toList)
+  }
+
+  private def executeCommands(cmds : List[String], jobName: Option[String] = None): Unit = {
+    cmds.foreach(cmd => {
       println("cmd: " + cmd)
       val exitCode = cmd.!(ConsoleProcessLogger)
-      if (exitCode != 0) throw CommandFailed(cmd, exitCode)
+      if (exitCode != 0) throw CommandFailed(cmd, exitCode, jobName)
     })
+  }
+
+  private def executeCommandsOutput(cmds : List[String], jobName: Option[String] = None): String = {
+    var lastOutput = ""
+
+    cmds.foreach(cmd => {
+      println("cmd: " + cmd)
+      try {
+        lastOutput = cmd.!!(ConsoleProcessLogger)
+      } catch {
+        case ex: RuntimeException => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, // "Nonzero exit value: XX"
+          jobName)
+      }
+    })
+
+    lastOutput
   }
 }
 
