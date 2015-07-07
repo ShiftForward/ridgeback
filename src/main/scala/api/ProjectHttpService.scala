@@ -5,6 +5,7 @@ import javax.ws.rs.Path
 import akka.actor.Props
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
+import core.{ Run, TestRunnerActor }
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._

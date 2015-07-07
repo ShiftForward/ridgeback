@@ -1,4 +1,4 @@
-package utils
+package core
 
 import akka.actor.Actor
 import org.yaml.snakeyaml.Yaml
@@ -8,7 +8,7 @@ import persistence.entities.{ JobDefinition, TestsConfiguration }
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
 import scala.sys.process._
-import scala.util.{ Success, Failure, Try }
+import scala.util.{ Failure, Success, Try }
 
 trait TestRunnerException extends Exception
 case class BadConfiguration(error: String) extends TestRunnerException
