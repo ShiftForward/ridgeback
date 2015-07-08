@@ -55,8 +55,6 @@ class TestRunnerActor extends Actor {
         Some("A job is missing its name")
       } else if (job.metric == null || job.metric.isEmpty) {
         Some(s"${job.name} is missing its metric")
-      } else if (job.script.isEmpty) {
-        Some(s"${job.name} does not have any command in script")
       } else if (!validMetrics.contains(job.getMetric)) {
         Some(s"Unknown metric ${job.metric} in ${job.name}")
       } else if (job.script.isEmpty) {
