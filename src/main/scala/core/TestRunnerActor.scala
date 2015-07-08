@@ -173,8 +173,8 @@ class TestRunnerActor extends Actor {
 }
 
 class BufferProcessLogger extends ProcessLogger {
-  def out = new StringBuilder
-  def err = new StringBuilder
+  val out = new StringBuilder
+  val err = new StringBuilder
 
   override def out(s: => String): Unit = out.append(s + "\n")
   override def err(s: => String): Unit = err.append(s + "\n")
