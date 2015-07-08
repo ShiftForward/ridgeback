@@ -151,14 +151,34 @@ class TestRunnerActor extends Actor {
 
   // wraps all commands in a call to /usr/bin/time and gets the real time of the /usr/bin/time output
   private def executeCommandsTime(cmds: List[String], jobName: Option[String] = None): Duration = {
-    val cmd = "time -p sh -c '" + cmds.mkString("; ") + "'"
-    Try(cmd !! ConsoleProcessLogger) match {
+    val cmdSeq = Seq("/usr/bin/time", "-p", "sh", "-c", cmds.mkString("; "))
+    val cmd = cmdSeq.mkString(" ")
+    println("cmd: " + cmd)
+    sender ! CommandExecuted(cmd)
+
+    // the time command prints its output to stderr thus we need
+    // a way to capture that
+    val logger = new BufferProcessLogger
+
+    Try(cmdSeq !! logger) match {
       case Success(o) =>
-        Duration(o.split(' ')(1).toDouble, SECONDS) // "real 1.23"
+        val timeOutput = """real (\d+.\d*)[\r\n\s]+user (\d+.\d*)[\r\n\s]sys (\d+.\d*)""".r.unanchored
+        logger.err.toString() match {
+          case timeOutput(real, user, sys) => Duration(real.toDouble, SECONDS)
+        }
       case Failure(ex: RuntimeException) => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, jobName) // "Nonzero exit value: XX"
       case Failure(ex) => throw CommandFailed(cmd, -1, jobName)
     }
   }
+}
+
+class BufferProcessLogger extends ProcessLogger {
+  def out = new StringBuilder
+  def err = new StringBuilder
+
+  override def out(s: => String): Unit = out.append(s + "\n")
+  override def err(s: => String): Unit = err.append(s + "\n")
+  override def buffer[T](f: => T): T = f
 }
 
 // TODO: eventually change this class to "write" to WebSockets or pusher.com
