@@ -5,13 +5,11 @@ import utils.Profile
 case class Project(
   id: Option[Int],
   name: String,
-  gitRepo: String
-)
+  gitRepo: String)
 
 case class SimpleProject(
   name: String,
-  gitRepo: String
-)
+  gitRepo: String)
 
 trait Projects extends Profile {
   import profile.api._

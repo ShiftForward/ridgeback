@@ -10,13 +10,11 @@ case class Test(
   projId: Option[Int],
   commit: String,
   startDate: Option[Timestamp],
-  endDate: Option[Timestamp]
-)
+  endDate: Option[Timestamp])
 
 case class SimpleTest(
   projId: Option[Int],
-  commit: String
-)
+  commit: String)
 
 trait Tests extends Profile {
   import profile.api._

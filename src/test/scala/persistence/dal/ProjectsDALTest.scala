@@ -18,11 +18,11 @@ class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
   "Project DAL" should {
 
     "return 1 on save" in {
-      modules.projectsDal.save(Project(None, "projName", "gitRepo")) must beEqualTo (1).await
+      modules.projectsDal.save(Project(None, "projName", "gitRepo")) must beEqualTo(1).await
     }
 
     "return valid project on get" in {
-      val supplier : Option[Project] = Await.result(modules.projectsDal.getProjectById(1), Duration(5, SECONDS))
+      val supplier: Option[Project] = Await.result(modules.projectsDal.getProjectById(1), Duration(5, SECONDS))
       supplier must beSome
       supplier.get.name === "projName"
       supplier.get.gitRepo === "gitRepo"
@@ -33,7 +33,7 @@ class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
     }
 
     "return 2 projects after inserting another one" in {
-      modules.projectsDal.save(Project(None, "projName", "gitRepo")) must beEqualTo (1).await
+      modules.projectsDal.save(Project(None, "projName", "gitRepo")) must beEqualTo(1).await
       modules.projectsDal.getProjects() must haveSize[Seq[Project]](2).await
     }
 

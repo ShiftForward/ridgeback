@@ -1,6 +1,6 @@
 package api
 
-import persistence.entities.{JsonProtocol, SimpleProject, Project}
+import persistence.entities.{ JsonProtocol, SimpleProject, Project }
 import spray.httpx.SprayJsonSupport
 import spray.http._
 import StatusCodes._
@@ -8,14 +8,14 @@ import scala.concurrent.Future
 import JsonProtocol._
 import SprayJsonSupport._
 
-class RoutesSpec  extends AbstractAPITest {
+class RoutesSpec extends AbstractAPITest {
   sequential
 
   def actorRefFactory = system
 
   val modules = new Modules {}
 
-  val projects = new ProjectHttpService(modules){
+  val projects = new ProjectHttpService(modules) {
     override def actorRefFactory = system
   }
 
@@ -57,7 +57,7 @@ class RoutesSpec  extends AbstractAPITest {
     }
 
     "not handle the invalid json" in {
-      Post("/project","{\"name\":\"1\"}") ~> projects.ProjectPostRoute ~> check {
+      Post("/project", "{\"name\":\"1\"}") ~> projects.ProjectPostRoute ~> check {
         handled must beFalse
       }
     }
