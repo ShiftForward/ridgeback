@@ -13,7 +13,7 @@ import scala.util.{ Failure, Success, Try }
 import scala.concurrent.duration._
 
 trait TestRunnerException extends Exception
-case class BadConfiguration(error: String) extends Exception(error) with TestRunnerException
+case class BadConfiguration(errors: Seq[String]) extends Exception(errors.mkString(";")) with TestRunnerException
 case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends TestRunnerException
 case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends TestRunnerException
 
@@ -26,14 +26,13 @@ object Finished
 class TestRunnerActor extends Actor {
   override def receive = {
     case Run(yamlStr) =>
-      try {
-        val config = parseConfig(yamlStr)
-        processConfig(config)
-      } catch {
-        case ex: TestRunnerException => sender ! TestError(ex)
-      } finally {
-        sender ! Finished
+
+      Try(parseConfig(yamlStr).map(processConfig)) match {
+        case Failure(ex) => sender ! TestError(ex)
+        case Success(_) => ;
       }
+
+      sender ! Finished
   }
 
   private val sourceFormats = Map(
@@ -41,52 +40,48 @@ class TestRunnerActor extends Actor {
     "time" -> List(),
     "output" -> List("days", "hours", "microseconds", "milliseconds", "minute", "nanoseconds", "seconds"))
 
-  private def parseConfig(yamlStr: String): TestsConfiguration = {
-    try {
-      val yaml = new Yaml(new Constructor(classOf[TestsConfiguration]))
-      val config = yaml.load(yamlStr).asInstanceOf[TestsConfiguration]
+  private def parseConfig(yamlStr: String): Try[TestsConfiguration] = {
+    val yaml = new Yaml(new Constructor(classOf[TestsConfiguration]))
+    val config = (Try(yaml.load(yamlStr).asInstanceOf[TestsConfiguration]) recover {
+      case e: YAMLException => throw BadConfiguration(Seq(e.getMessage))
+    }) get
 
-      if (config == null)
-        throw BadConfiguration("Could not parse")
+    if (config == null) {
+      throw BadConfiguration(Seq("Could not parse"))
+    }
 
-      if (config.jobs.isEmpty) {
-        throw BadConfiguration("Test has no jobs")
-      }
+    if (config.jobs.isEmpty) {
+      throw BadConfiguration(Seq("Test has no jobs"))
+    }
 
-      config.jobs.foreach(job => {
-        val jobName = job.getName
-
-        if (job.name == null || job.name.isEmpty) {
-          throw BadConfiguration("A job is missing its name")
-        }
-
-        if (job.source == null || job.source.isEmpty) {
-          throw BadConfiguration(s"$jobName is missing its source")
-        }
-
+    val errors = config.jobs.flatMap(job => {
+      if (job.name == null || job.name.isEmpty) {
+        Some("A job is missing its name")
+      } else if (job.metric == null || job.metric.isEmpty) {
+        Some(s"${job.name} is missing its metric")
+      } else if (!validMetrics.contains(job.getMetric)) {
+        Some(s"Unknown metric ${job.metric} in ${job.name}")
+      } else if (job.script.isEmpty) {
+        Some(s"${job.name} does not have any command in script")
+      } else {
         sourceFormats.get(job.source) match {
           case Some(formats) =>
             if (formats.nonEmpty && !formats.contains(job.format)) {
-              val format = job.format
-              val source = job.source
-              throw BadConfiguration(s"$jobName format $format doesn't match source $source")
+              Some(s"${job.name} format ${job.format} doesn't match source ${job.source}")
+            } else {
+              None
             }
           case None =>
-            val source = job.source
-            throw BadConfiguration(s"$jobName has unknown source $source")
+            Some(s"${job.name} has unknown source ${job.source}")
         }
+      }
+    })
 
-        if (job.script.isEmpty) {
-          throw BadConfiguration(s"$jobName does not have any command in script")
-        }
-      })
-
-      config
-    } catch {
-      case e: BadConfiguration =>
-        println(e.getMessage); throw e
-      case e: YAMLException => println(e.getMessage); throw BadConfiguration(e.getMessage)
+    if (errors.nonEmpty) {
+      throw BadConfiguration(errors.toList)
     }
+
+    Success(config)
   }
 
   private def processConfig(test: TestsConfiguration): Unit = {
@@ -94,27 +89,24 @@ class TestRunnerActor extends Actor {
     executeCommands(test.before_jobs.toList)
 
     test.jobs.foreach(job => {
-
-      val jobName = job.name
-
-      executeCommands(job.before_script.toList, Some(jobName))
+      executeCommands(job.before_script.toList, Some(job.name))
 
       job.source match {
         case "time" =>
-          val d = executeCommandsTime(job.script.toList, Some(jobName))
-          sender ! MetricOutput(d, jobName)
+          val d = executeCommandsTime(job.script.toList, Some(job.name))
+          sender ! MetricOutput(d, job.name)
         case "output" =>
-          val lastOutput = executeCommandsOutput(job.script.toList, Some(jobName))
+          val lastOutput = executeCommandsOutput(job.script.toList, Some(job.name))
           val duration = Try(Duration(lastOutput.toDouble, JobDefinition.timeFormatToTimeUnit(job.format)))
 
           duration match {
-            case Success(d) => sender ! MetricOutput(d, jobName)
-            case Failure(e) => throw InvalidOutput(job.script.last, Some(jobName))
+            case Success(d) => sender ! MetricOutput(d, job.name)
+            case Failure(e) => throw InvalidOutput(job.script.last, Some(job.name))
           }
-        case _ => executeCommands(job.script.toList, Some(jobName));
+        case _ => executeCommands(job.script.toList, Some(job.name));
       }
 
-      executeCommands(job.after_script.toList, Some(jobName))
+      executeCommands(job.after_script.toList, Some(job.name))
     })
 
     executeCommands(test.after_jobs.toList)

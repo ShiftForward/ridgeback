@@ -2,7 +2,6 @@ package core
 
 import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
-
 import akka.actor._
 import akka.testkit._
 import scala.concurrent.duration.Duration
@@ -58,7 +57,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run("")
 
-      expectMsg(TestError(BadConfiguration("Could not parse")))
+      expectMsg(TestError(BadConfiguration(Seq("Could not parse"))))
     }
 
     "fail on invalid source" in new AkkaTestkitSpecs2Support {
@@ -72,7 +71,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration("job1 has unknown source bad")))
+      expectMsg(TestError(BadConfiguration(Seq("Unknown metric bad in job1"))))
     }
 
     "fail on invalid format" in new AkkaTestkitSpecs2Support {
@@ -90,16 +89,20 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(TestError(BadConfiguration("job1 format bad doesn't match source output")))
     }
 
-    "fail on missing required job name" in new AkkaTestkitSpecs2Support {
+    "fail on 2 jobs missing required job name" in new AkkaTestkitSpecs2Support {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run(
         """
           jobs:
             - script:
-                - true
+              - true
+            - script:
+               - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration("A job is missing its name")))
+      expectMsg(TestError(BadConfiguration(Seq(
+        "A job is missing its name",
+        "A job is missing its name"))))
     }
 
     "fail on missing required job source" in new AkkaTestkitSpecs2Support {
@@ -112,7 +115,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration("job1 is missing its source")))
+      expectMsg(TestError(BadConfiguration(Seq("job1 is missing its metric"))))
     }
 
     "fail on missing jobs" in new AkkaTestkitSpecs2Support {
@@ -123,7 +126,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
             - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration("Test has no jobs")))
+      expectMsg(TestError(BadConfiguration(Seq("Test has no jobs"))))
     }
 
     "fail on garbish yaml" in new AkkaTestkitSpecs2Support {
