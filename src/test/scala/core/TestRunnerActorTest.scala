@@ -157,9 +157,10 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(Finished)
     }
 
+    def checkNotWindows = System.getProperty("os.name").startsWith("Windows") must be_==(false).orSkip
+
     "time source works correctly" in new AkkaTestkitSpecs2Support {
-      if (System.getProperty("os.name").startsWith("Windows"))
-        todo
+      checkNotWindows // source time depends on /usr/bin/time, unavailable on Windows
 
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run(
