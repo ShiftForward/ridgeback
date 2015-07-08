@@ -33,13 +33,14 @@ lazy val ridgeback = (project in file(".")).
         "com.typesafe.akka"   %%  "akka-testkit"  % akkaV   % "test",
         "org.specs2"          %%  "specs2-core"   % specs2V % "test",
         "org.specs2"          %%  "specs2-mock"   % specs2V % "test",
-        "org.yaml"            %   "snakeyaml"     % "1.15",
         "com.typesafe.slick"  %%  "slick"         % "3.0.0",
         "com.h2database"      %   "h2"            % "1.4.187",
         "com.zaxxer"          %   "HikariCP-java6" % "2.3.8",
         "com.gettyimages"     %%  "spray-swagger" % "0.5.1"
       )
     }
-  )
+  ) dependsOn moultingyamlProject
+
+lazy val moultingyamlProject = RootProject(uri("git://github.com/jcazevedo/moultingyaml.git"))
 
 Revolver.settings
