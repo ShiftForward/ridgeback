@@ -56,7 +56,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run("")
 
-      expectMsg(TestError(BadConfiguration(Seq("YamlObject expected in field 'jobs'"))))
+      expectMsg(TestError(BadConfiguration(Seq("YamlObject expected, but got YamlNull"))))
     }
 
     "fail on invalid metrics" in new AkkaTestkitSpecs2Support {
@@ -67,7 +67,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
             - name: job1
               metric: bad
               script:
-                - true
+                - "true"
         """.stripMargin)
 
       expectMsg(TestError(BadConfiguration(Seq("Unknown metric bad in job1"))))
@@ -81,11 +81,11 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
             - name: job1
               metric: bad1
               script:
-                - true
+                - "true"
             - name: job2
               metric: bad2
               script:
-                - true
+                - "true"
         """.stripMargin)
 
       expectMsg(TestError(BadConfiguration(Seq(
@@ -99,7 +99,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
         """
           jobs:
             - script:
-              - true
+              - "true"
         """.stripMargin)
 
       expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'name'"))))
@@ -112,7 +112,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
           jobs:
             - name: job1
               script:
-                - true
+                - "true"
         """.stripMargin)
 
       expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'metric'"))))
@@ -123,10 +123,10 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       actor ! Run(
         """
           before_jobs:
-            - true
+            - "true"
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration(Seq("Test has no jobs"))))
+      expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'jobs'"))))
     }
 
     "fail on garbish yaml" in new AkkaTestkitSpecs2Support {
@@ -146,7 +146,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
             - name: job1
               metric: ignore
               script:
-                - true
+                - "true"
           after_jobs:
             - rmdir ttt
         """.stripMargin)
