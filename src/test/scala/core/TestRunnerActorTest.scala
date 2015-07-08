@@ -71,7 +71,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration(Seq("Unknown metric bad in job1"))))
+      expectMsg(TestError(BadConfiguration(Seq("Unknown source bad in job1"))))
     }
 
     "fail on invalid format" in new AkkaTestkitSpecs2Support {
@@ -86,7 +86,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration("job1 format bad doesn't match source output")))
+      expectMsg(TestError(BadConfiguration(Seq("job1 format bad doesn't match source output"))))
     }
 
     "fail on 2 jobs missing required job name" in new AkkaTestkitSpecs2Support {
@@ -115,7 +115,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration(Seq("job1 is missing its metric"))))
+      expectMsg(TestError(BadConfiguration(Seq("job1 is missing its source"))))
     }
 
     "fail on missing jobs" in new AkkaTestkitSpecs2Support {
