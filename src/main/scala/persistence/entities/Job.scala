@@ -7,14 +7,16 @@ case class Job(
   projId: Option[Int],
   testId: Option[Int],
   jobName: String,
-  metricName: String,
+  source: String,
+  format: String,
   value: Double)
 
 case class SimpleJob(
   projId: Option[Int],
   testId: Option[Int],
   jobName: String,
-  metricName: String,
+  source: String,
+  format: String,
   value: Double)
 
 trait Jobs extends Profile {
@@ -26,10 +28,11 @@ trait Jobs extends Profile {
     def projId = column[Int]("projId")
     def testId = column[Int]("testId")
     def jobName = column[String]("jobName")
-    def metricName = column[String]("metricName")
+    def source = column[String]("source")
+    def format = column[String]("format")
     def value = column[Double]("value")
 
-    def * = (id.?, projId.?, testId.?, jobName, metricName, value) <> (Job.tupled, Job.unapply)
+    def * = (id.?, projId.?, testId.?, jobName, source, format, value) <> (Job.tupled, Job.unapply)
     // def project = foreignKey("job_project", projId, projectsTable)(_.id, onDelete = ForeignKeyAction.Cascade)
     // def test = foreignKey("job_test", testId, testsTable)(_.id, onDelete = ForeignKeyAction.Cascade)
   }
