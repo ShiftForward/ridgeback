@@ -71,7 +71,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - true
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration(Seq("Unknown source bad in job1"))))
+      expectMsg(TestError(BadConfiguration(Seq("job1 has unknown source bad"))))
     }
 
     "fail on invalid format" in new AkkaTestkitSpecs2Support {
