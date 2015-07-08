@@ -49,11 +49,7 @@ class TestRunnerActor extends Actor {
     }
 
     val errors = config.jobs.flatMap(job => {
-      if (job.name.isEmpty) {
-        Some("A job is missing its name")
-      } else if (job.metric == null || job.metric.isEmpty) {
-        Some(s"${job.name} is missing its metric")
-      } else if (!validMetrics.contains(job.metric)) {
+      if (!validMetrics.contains(job.metric)) {
         Some(s"Unknown metric ${job.metric} in ${job.name}")
       } else if (job.script.isEmpty) {
         Some(s"${job.name} does not have any command in script")
