@@ -158,6 +158,9 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
     }
 
     "time source works correctly" in new AkkaTestkitSpecs2Support {
+      if (System.getProperty("os.name").startsWith("Windows"))
+        todo
+
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run(
         """
