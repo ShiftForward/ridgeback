@@ -152,7 +152,7 @@ class TestRunnerActor extends Actor {
 
     Try(cmdSeq !! logger) match {
       case Success(_) =>
-        val timeOutput = """real (\d+.\d*)[\r\n\s]+user (\d+.\d*)[\r\n\s]sys (\d+.\d*)""".r.unanchored
+        val timeOutput = """real[\s]+(\d+.\d*)[\r\n\s]+user[\s]+(\d+.\d*)[\r\n\s]sys[\s]+(\d+.\d*)""".r.unanchored
         logger.err.toString() match {
           case timeOutput(real, user, sys) => Duration(real.toDouble, SECONDS)
         }
