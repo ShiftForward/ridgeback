@@ -63,10 +63,10 @@ class TestRunnerActor extends Actor {
 
   private def processConfig(test: TestsConfiguration): Unit = {
 
-    test.before_jobs.foreach(cmds => executeCommands(cmds))
+    test.before_jobs.foreach(executeCommands(_))
 
     test.jobs.foreach((job: JobDefinition) => {
-      job.before_script.foreach(cmds => executeCommands(cmds, Some(job.name)))
+      job.before_script.foreach(executeCommands(_, Some(job.name)))
 
       val lastOutput = executeCommandsOutput(job.script)
 
@@ -79,10 +79,10 @@ class TestRunnerActor extends Actor {
         }
       }
 
-      job.after_script.foreach(cmds => executeCommands(cmds, Some(job.name)))
+      job.after_script.foreach(executeCommands(_, Some(job.name)))
     })
 
-    test.after_jobs.foreach(cmds => executeCommands(cmds))
+    test.after_jobs.foreach(executeCommands(_))
   }
 
   // executes commands in a shell and throws if any command fails
