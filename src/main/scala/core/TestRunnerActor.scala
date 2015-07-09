@@ -141,7 +141,7 @@ class TestRunnerActor extends Actor {
 
   // wraps all commands in a call to /usr/bin/time and gets the real time of the /usr/bin/time output
   private def executeCommandsTime(cmds: List[String], jobName: Option[String] = None): Duration = {
-    val cmdSeq = Seq("/usr/bin/time", "-p", "sh", "-c", cmds.mkString("; "))
+    val cmdSeq = Seq("/usr/bin/time", "-p", "sh", "-c", cmds.mkString(" && "))
     val cmd = cmdSeq.mkString(" ")
     println("cmd: " + cmd)
     sender ! CommandExecuted(cmd)
