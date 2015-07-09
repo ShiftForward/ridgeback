@@ -36,16 +36,12 @@ class TestRunnerActor extends Actor {
     "time_nanoseconds" :: "time_seconds" :: "ignore" :: Nil // :: "perf_cpu" :: "perf_ram" ...
 
   private def parseConfig(yamlStr: String): Try[TestsConfiguration] = {
-    val config = (Try(yamlStr.parseYaml.convertTo[TestsConfiguration]) recover {
-      case e: DeserializationException => throw BadConfiguration(Seq(e.getMessage))
-    }) get
-
-    if (config == null) {
-      throw BadConfiguration(Seq("Could not parse"))
-    }
-
-    if (config.jobs.isEmpty) {
-      throw BadConfiguration(Seq("Test has no jobs"))
+    val config = Try(yamlStr.parseYaml.convertTo[TestsConfiguration]) match {
+      case Failure(e: DeserializationException) => throw BadConfiguration(Seq(e.getMessage))
+      case Failure(e: Throwable) => throw e
+      case Success(null) => throw BadConfiguration(Seq("Could not parse"))
+      case Success(c) if c.jobs.isEmpty => throw BadConfiguration(Seq("Test has no jobs"))
+      case Success(c) => c
     }
 
     val errors = config.jobs.flatMap(job => {
