@@ -16,5 +16,6 @@ trait AbstractPersistenceTest extends Specification {
 
     override lazy val projectsDal = new ProjectsDalImpl()
     override lazy val testsDal = new TestsDalImpl()
+    override lazy val jobsDal = new JobsDalImpl()
   }
 }
