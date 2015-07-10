@@ -5,7 +5,7 @@ import javax.ws.rs.Path
 import akka.actor.Props
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
-import core.{ Run, TestRunnerActor }
+import core.{ WorkerSupervisorActor, Run, TestRunnerActor }
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
@@ -15,7 +15,6 @@ import spray.routing._
 import utils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
@@ -88,7 +87,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     post {
       entity(as[String]) {
         yamlStr =>
-          actorRefFactory.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr)
+          actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules))) ! Run(yamlStr)
           complete(StatusCodes.Created) // TODO: return test id
       }
     }

@@ -15,6 +15,8 @@ case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends Te
 case class Run(yamlStr: String)
 case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
+case class CommandStdout(str: String)
+case class CommandStderr(str: String)
 case class MetricOutput(m: Any, jobName: String)
 object Finished
 
@@ -22,9 +24,15 @@ class TestRunnerActor extends Actor {
   override def receive = {
     case Run(yamlStr) =>
 
-      Try(parseConfig(yamlStr).map(processConfig)) match {
+      parseConfig(yamlStr) match {
+        case Failure(ex: TestRunnerException) => sender ! ex
         case Failure(ex) => sender ! TestError(ex)
-        case Success(_) => ;
+        case Success(config) =>
+          Try(processConfig(config)) match {
+            case Failure(ex: TestRunnerException) => sender ! ex
+            case Failure(ex) => sender ! TestError(ex)
+            case Success(_) => ;
+          }
       }
 
       sender ! Finished
