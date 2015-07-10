@@ -19,6 +19,8 @@ class RoutesActor(modules: Configuration with PersistenceModule) extends Actor w
 
   // create table for projects if the table didn't exist (should be removed, when the database wasn't h2)
   modules.projectsDal.createTables()
+  modules.testsDal.createTables()
+  modules.jobsDal.createTables()
 
   val swaggerService = new SwaggerHttpService {
     override def apiTypes = Seq(typeOf[ProjectHttpService], typeOf[TestHttpService])
