@@ -86,11 +86,13 @@ class TestRunnerActor extends Actor {
     test.jobs.foreach(job => {
       Shell.executeCommands(job.before_script.toList, Some(job.name), Some(sender()))
 
-      job.source match {
-        case "time" => TimeJobProcessor(job, Some(sender())).foreach(d => sender ! d)
-        case "output" => OutputJobProcessor(job, Some(sender())).foreach(d => sender ! d)
-        case _ => IgnoreJobProcessor(job, Some(sender())).foreach(d => sender ! d)
+      val metric: Option[MetricOutput] = job.source match {
+        case "time" => TimeJobProcessor(job, Some(sender()))
+        case "output" => OutputJobProcessor(job, Some(sender()))
+        case _ => IgnoreJobProcessor(job, Some(sender()))
       }
+
+      metric.foreach(d => sender ! d)
 
       Shell.executeCommands(job.after_script.toList, Some(job.name), Some(sender()))
     })
