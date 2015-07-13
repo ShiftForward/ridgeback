@@ -1,10 +1,9 @@
 package core
 
 import akka.actor.Actor
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.constructor.Constructor
-import org.yaml.snakeyaml.error.YAMLException
-import persistence.entities.{ JobDefinition, TestsConfiguration }
+import net.jcazevedo.moultingyaml._
+import persistence.entities.YamlProtocol._
+import persistence.entities.{ JobDefinitionUtilities, JobDefinition, TestsConfiguration }
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
@@ -37,25 +36,16 @@ class TestRunnerActor extends Actor {
     "time_nanoseconds" :: "time_seconds" :: "ignore" :: Nil // :: "perf_cpu" :: "perf_ram" ...
 
   private def parseConfig(yamlStr: String): Try[TestsConfiguration] = {
-    val yaml = new Yaml(new Constructor(classOf[TestsConfiguration]))
-    val config = (Try(yaml.load(yamlStr).asInstanceOf[TestsConfiguration]) recover {
-      case e: YAMLException => throw BadConfiguration(Seq(e.getMessage))
-    }) get
-
-    if (config == null) {
-      throw BadConfiguration(Seq("Could not parse"))
-    }
-
-    if (config.jobs.isEmpty) {
-      throw BadConfiguration(Seq("Test has no jobs"))
+    val config = Try(yamlStr.parseYaml.convertTo[TestsConfiguration]) match {
+      case Failure(e: DeserializationException) => throw BadConfiguration(Seq(e.getMessage))
+      case Failure(e: Throwable) => throw e
+      case Success(null) => throw BadConfiguration(Seq("Could not parse"))
+      case Success(c) if c.jobs.isEmpty => throw BadConfiguration(Seq("Test has no jobs"))
+      case Success(c) => c
     }
 
     val errors = config.jobs.flatMap(job => {
-      if (job.name == null || job.name.isEmpty) {
-        Some("A job is missing its name")
-      } else if (job.metric == null || job.metric.isEmpty) {
-        Some(s"${job.name} is missing its metric")
-      } else if (!validMetrics.contains(job.getMetric)) {
+      if (!validMetrics.contains(job.metric)) {
         Some(s"Unknown metric ${job.metric} in ${job.name}")
       } else if (job.script.isEmpty) {
         Some(s"${job.name} does not have any command in script")
@@ -73,15 +63,15 @@ class TestRunnerActor extends Actor {
 
   private def processConfig(test: TestsConfiguration): Unit = {
 
-    executeCommands(test.before_jobs.toList)
+    test.before_jobs.foreach(executeCommands(_))
 
-    test.jobs.foreach(job => {
-      executeCommands(job.before_script.toList, Some(job.name))
+    test.jobs.foreach((job: JobDefinition) => {
+      job.before_script.foreach(executeCommands(_, Some(job.name)))
 
-      val lastOutput = executeCommandsOutput(job.script.toList)
+      val lastOutput = executeCommandsOutput(job.script)
 
       if (job.metric != "ignore") {
-        val duration = Try(Duration(lastOutput.toDouble, JobDefinition.timeMetricToTimeUnit(job.metric)))
+        val duration = Try(Duration(lastOutput.toDouble, JobDefinitionUtilities.timeMetricToTimeUnit(job.metric)))
 
         duration match {
           case Success(d) => println(s"OUT: ${job.name} took $d (${job.metric})")
@@ -89,10 +79,10 @@ class TestRunnerActor extends Actor {
         }
       }
 
-      executeCommands(job.after_script.toList, Some(job.name))
+      job.after_script.foreach(executeCommands(_, Some(job.name)))
     })
 
-    executeCommands(test.after_jobs.toList)
+    test.after_jobs.foreach(executeCommands(_))
   }
 
   // executes commands in a shell and throws if any command fails
