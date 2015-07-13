@@ -23,8 +23,7 @@ class TestRunnerActor extends Actor {
     case Run(yamlStr) =>
 
       Try(parseConfig(yamlStr).map(processConfig)) match {
-        case Failure(ex) =>
-          println("exxx: " + ex); sender ! TestError(ex)
+        case Failure(ex) => sender ! TestError(ex)
         case Success(_) => ;
       }
 
