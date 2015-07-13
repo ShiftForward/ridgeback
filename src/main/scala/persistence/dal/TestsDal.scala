@@ -1,6 +1,7 @@
 package persistence.dal
 
 import java.sql.Timestamp
+import java.time.{ ZoneId, ZonedDateTime, LocalDateTime }
 
 import com.typesafe.scalalogging.LazyLogging
 import persistence.entities.{ Test, Tests }
@@ -14,7 +15,7 @@ trait TestsDal {
   def getTests(): Future[Seq[Test]]
   def getTestsByProjId(projId: Int): Future[Seq[Test]]
   def getTestById(id: Int): Future[Option[Test]]
-  def setTestEndDate(id: Int, time: Timestamp): Future[Int]
+  def setTestEndDate(id: Int, time: ZonedDateTime): Future[Int]
   def createTables(): Future[Unit]
 }
 
@@ -29,7 +30,12 @@ class TestsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit val p
 
   override def getTestById(id: Int): Future[Option[Test]] = db.run(tests.filter(_.id === id).result.headOption)
 
-  override def setTestEndDate(id: Int, time: Timestamp): Future[Int] = {
+  implicit def dateTime =
+    MappedColumnType.base[ZonedDateTime, Timestamp](
+      dt => Timestamp.valueOf(dt.toLocalDateTime),
+      ts => ts.toLocalDateTime.atZone(ZoneId.systemDefault()))
+
+  override def setTestEndDate(id: Int, time: ZonedDateTime): Future[Int] = {
     val q = for { t <- tests if t.id === id } yield t.endDate
     val updateAction = q.update(Some(time))
     db.run(updateAction)
