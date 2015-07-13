@@ -7,23 +7,11 @@ import scala.util.{ Failure, Success, Try }
 import sys.process._
 
 object Shell {
-  // executes commands in a shell and throws if any command fails
-  def executeCommands(cmds: List[String], jobName: Option[String] = None, sender: Option[ActorRef] = None): Unit = {
-    cmds.foreach(cmd => {
-      println("cmd: " + cmd)
-      sender.foreach(s => s ! CommandExecuted(cmd))
-
-      val exitCode = cmd ! ConsoleProcessLogger
-      if (exitCode != 0) throw CommandFailed(cmd, exitCode, jobName)
-    })
-  }
-
-  // similar to executeCommands however it returns the output of the last command
-  def executeCommandsOutput(cmds: List[String], jobName: Option[String] = None, sender: Option[ActorRef] = None): String = {
+  //  executes commands in a shell, throws if any command fails and returns the last command stdout
+  def executeCommands(cmds: List[String], jobName: Option[String] = None, sender: Option[ActorRef] = None): String = {
     var lastOutput = ""
 
     cmds.foreach(cmd => {
-      println("cmd: " + cmd)
       sender.foreach(s => s ! CommandExecuted(cmd))
 
       Try(cmd !! ConsoleProcessLogger) match {
@@ -40,7 +28,6 @@ object Shell {
   def executeCommandsTime(cmds: List[String], jobName: Option[String] = None, sender: Option[ActorRef] = None): Duration = {
     val cmdSeq = Seq("/usr/bin/time", "-p", "sh", "-c", cmds.mkString(" && "))
     val cmd = cmdSeq.mkString(" ")
-    println("cmd: " + cmd)
     sender.foreach(s => s ! CommandExecuted(cmd))
 
     // the time command prints its output to stderr thus we need
