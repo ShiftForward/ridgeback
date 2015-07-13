@@ -1,7 +1,7 @@
 package core
 
 import akka.actor.ActorRef
-import persistence.entities.JobDefinition
+import persistence.entities.{ JobDefinitionUtilities, JobDefinition }
 
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success, Try }
@@ -21,7 +21,7 @@ object TimeJobProcessor extends JobProcessor {
 object OutputJobProcessor extends JobProcessor {
   def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
     val lastOutput = Shell.executeCommandsOutput(job.script.toList, Some(job.name), sender)
-    val duration = Try(Duration(lastOutput.toDouble, JobDefinition.timeFormatToTimeUnit(job.format)))
+    val duration = Try(Duration(lastOutput.toDouble, JobDefinitionUtilities.timeFormatToTimeUnit(job.format getOrElse "seconds")))
 
     duration match {
       case Success(d) => Some(MetricOutput(d, job.name))

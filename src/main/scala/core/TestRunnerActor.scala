@@ -1,12 +1,10 @@
 package core
 
 import akka.actor.Actor
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.constructor.Constructor
-import org.yaml.snakeyaml.error.YAMLException
+import net.jcazevedo.moultingyaml._
 import persistence.entities.TestsConfiguration
+import persistence.entities.YamlProtocol._
 
-import scala.collection.JavaConversions._
 import scala.util.{ Failure, Success, Try }
 
 trait TestRunnerException extends Exception
@@ -25,7 +23,8 @@ class TestRunnerActor extends Actor {
     case Run(yamlStr) =>
 
       Try(parseConfig(yamlStr).map(processConfig)) match {
-        case Failure(ex) => sender ! TestError(ex)
+        case Failure(ex) =>
+          println("exxx: " + ex); sender ! TestError(ex)
         case Success(_) => ;
       }
 
@@ -38,31 +37,22 @@ class TestRunnerActor extends Actor {
     "output" -> List("days", "hours", "microseconds", "milliseconds", "minute", "nanoseconds", "seconds"))
 
   private def parseConfig(yamlStr: String): Try[TestsConfiguration] = {
-    val yaml = new Yaml(new Constructor(classOf[TestsConfiguration]))
-    val config = (Try(yaml.load(yamlStr).asInstanceOf[TestsConfiguration]) recover {
-      case e: YAMLException => throw BadConfiguration(Seq(e.getMessage))
-    }) get
-
-    if (config == null) {
-      throw BadConfiguration(Seq("Could not parse"))
-    }
-
-    if (config.jobs.isEmpty) {
-      throw BadConfiguration(Seq("Test has no jobs"))
+    val config = Try(yamlStr.parseYaml.convertTo[TestsConfiguration]) match {
+      case Failure(e: DeserializationException) => throw BadConfiguration(Seq(e.getMessage))
+      case Failure(e: Throwable) => throw e
+      case Success(null) => throw BadConfiguration(Seq("Could not parse"))
+      case Success(c) if c.jobs.isEmpty => throw BadConfiguration(Seq("Test has no jobs"))
+      case Success(c) => c
     }
 
     val errors = config.jobs.flatMap(job => {
-      if (job.name == null || job.name.isEmpty) {
-        Some("A job is missing its name")
-      } else if (job.source == null || job.source.isEmpty) {
-        Some(s"${job.name} is missing its source")
-      } else if (job.script.isEmpty) {
+      if (job.script.isEmpty) {
         Some(s"${job.name} does not have any command in script")
       } else {
         sourceFormats.get(job.source) match {
           case Some(formats) =>
-            if (formats.nonEmpty && !formats.contains(job.format)) {
-              Some(s"${job.name} format ${job.format} doesn't match source ${job.source}")
+            if (formats.nonEmpty && !formats.contains(job.format.getOrElse(""))) {
+              Some(s"${job.name} format ${job.format.getOrElse("\"\"")} doesn't match source ${job.source}")
             } else {
               None
             }
@@ -80,11 +70,10 @@ class TestRunnerActor extends Actor {
   }
 
   private def processConfig(test: TestsConfiguration): Unit = {
-
-    Shell.executeCommands(test.before_jobs.toList, None, Some(sender()))
+    test.before_jobs.foreach(Shell.executeCommands(_, None, Some(sender())))
 
     test.jobs.foreach(job => {
-      Shell.executeCommands(job.before_script.toList, Some(job.name), Some(sender()))
+      job.before_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
 
       val metric: Option[MetricOutput] = job.source match {
         case "time" => TimeJobProcessor(job, Some(sender()))
@@ -94,9 +83,9 @@ class TestRunnerActor extends Actor {
 
       metric.foreach(d => sender ! d)
 
-      Shell.executeCommands(job.after_script.toList, Some(job.name), Some(sender()))
+      job.after_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
     })
 
-    Shell.executeCommands(test.after_jobs.toList, None, Some(sender()))
+    test.after_jobs.foreach(Shell.executeCommands(_, None, Some(sender())))
   }
 }
