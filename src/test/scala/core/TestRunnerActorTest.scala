@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
 import akka.actor._
 import akka.testkit._
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 /* A tiny class that can be used as a Specs2 'context'. */
 abstract class AkkaTestkitSpecs2Support extends TestKit(ActorSystem()) with After with ImplicitSender {
@@ -203,12 +203,13 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
               source: output
               format: seconds
               script:
-                - curl -w %{time_total} -o NUL -s http://google.com/
+                - echo 1
         """.stripMargin)
 
       expectMsgClass(classOf[CommandExecuted])
       val msg = expectMsgClass(classOf[MetricOutput])
       msg.m must haveSuperclass[Duration]
+      msg.m.asInstanceOf[Duration] === Duration(1, SECONDS)
     }
   }
 }
