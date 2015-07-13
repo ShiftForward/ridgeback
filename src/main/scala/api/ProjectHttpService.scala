@@ -2,7 +2,8 @@ package api
 
 import javax.ws.rs.Path
 
-import akka.actor.Props
+import akka.actor._
+import akka.pattern.ask
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
 import core.{ Run, WorkerSupervisorActor }
@@ -89,8 +90,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
         onComplete(modules.projectsDal.getProjectById(projId)) {
           case Success(Some(proj)) =>
             onComplete(actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules))) ? Run(yamlStr)) {
-              case Success(Some(testId)) => complete(testId, StatusCodes.Created)
-              case Success(None) => complete(StatusCodes.InternalServerError, "Could not create test")
+              case Success(Some(testId)) => complete(StatusCodes.Created, testId.toString)
+              case Success(_) => complete(StatusCodes.InternalServerError, "Could not create test")
               case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
             }
           case Success(None) => complete(StatusCodes.NotFound)

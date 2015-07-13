@@ -3,8 +3,6 @@ package core
 import akka.actor.{ Props, Actor }
 import utils.{ PersistenceModule, Configuration }
 
-case class
-
 class WorkerSupervisorActor(modules: Configuration with PersistenceModule) extends Actor {
   override def receive: Receive = {
     case Run(yamlStr) => context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr)
