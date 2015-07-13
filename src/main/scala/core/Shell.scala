@@ -64,9 +64,9 @@ class BufferProcessLogger extends ProcessLogger {
   val out = new StringBuilder
   val err = new StringBuilder
 
-  override def out(s: => String): Unit = out.append(s + "\n")
-  override def err(s: => String): Unit = err.append(s + "\n")
-  override def buffer[T](f: => T): T = f
+  def out(s: => String): Unit = out.append(s + "\n")
+  def err(s: => String): Unit = err.append(s + "\n")
+  def buffer[T](f: => T): T = f
 }
 
 // TODO: eventually change this class to "write" to WebSockets or pusher.com

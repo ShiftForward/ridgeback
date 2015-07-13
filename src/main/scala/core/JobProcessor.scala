@@ -12,14 +12,14 @@ trait JobProcessor {
 }
 
 object TimeJobProcessor extends JobProcessor {
-  override def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
+  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
     val d = Shell.executeCommandsTime(job.script.toList, Some(job.name), sender)
     Some(MetricOutput(d, job.name))
   }
 }
 
 object OutputJobProcessor extends JobProcessor {
-  override def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
+  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
     val lastOutput = Shell.executeCommandsOutput(job.script.toList, Some(job.name), sender)
     val duration = Try(Duration(lastOutput.toDouble, JobDefinition.timeFormatToTimeUnit(job.format)))
 
@@ -31,7 +31,7 @@ object OutputJobProcessor extends JobProcessor {
 }
 
 object IgnoreJobProcessor extends JobProcessor {
-  override def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
+  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
     Shell.executeCommands(job.script.toList, Some(job.name), sender)
     None
   }
