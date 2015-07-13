@@ -6,7 +6,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
-import core.{ Run, WorkerSupervisorActor }
+import core.{ Start, WorkerSupervisorActor }
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
@@ -89,7 +89,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
       entity(as[String]) { yamlStr =>
         onComplete(modules.projectsDal.getProjectById(projId)) {
           case Success(Some(proj)) =>
-            onComplete(actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules))) ? Run(yamlStr)) {
+            val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules)))
+            onComplete(actor ? Start(yamlStr, proj)) {
               case Success(Some(testId)) => complete(StatusCodes.Created, testId.toString)
               case Success(_) => complete(StatusCodes.InternalServerError, "Could not create test")
               case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")

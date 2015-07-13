@@ -12,17 +12,17 @@ case class BadConfiguration(errors: Seq[String]) extends Exception(errors.mkStri
 case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends TestRunnerException
 case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends TestRunnerException
 
-case class Run(yamlStr: String)
+case class Run(yamlStr: String, testId: Int)
 case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
 case class MetricOutput(m: Any, jobName: String)
-object Finished
+case class Finished(testId: Int)
 
 class TestRunnerActor extends Actor {
   override def receive = {
-    case Run(yamlStr) =>
+    case Run(yamlStr, testId) =>
 
       parseConfig(yamlStr) match {
         case Failure(ex: TestRunnerException) => sender ! ex
@@ -35,7 +35,7 @@ class TestRunnerActor extends Actor {
           }
       }
 
-      sender ! Finished
+      sender ! Finished(testId)
   }
 
   private val sourceFormats = Map(
