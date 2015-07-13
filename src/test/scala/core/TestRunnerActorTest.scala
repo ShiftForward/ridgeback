@@ -1,9 +1,10 @@
 package core
 
-import akka.actor._
-import akka.testkit._
 import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
+import akka.actor._
+import akka.testkit._
+import scala.concurrent.duration._
 
 /* A tiny class that can be used as a Specs2 'context'. */
 abstract class AkkaTestkitSpecs2Support extends TestKit(ActorSystem()) with After with ImplicitSender {
@@ -24,11 +25,11 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
 
         jobs:
           - name: job1
-            metric: ignore
+            source: ignore
             script:
               - true 3
           - name: job2
-            metric: ignore
+            source: ignore
             before_script:
               - true 4
             script:
@@ -59,18 +60,33 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(TestError(BadConfiguration(Seq("YamlObject expected, but got YamlNull"))))
     }
 
-    "fail on invalid metrics" in new AkkaTestkitSpecs2Support {
+    "fail on invalid source" in new AkkaTestkitSpecs2Support {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run(
         """
           jobs:
             - name: job1
-              metric: bad
+              source: bad
               script:
                 - "true"
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration(Seq("Unknown metric bad in job1"))))
+      expectMsg(TestError(BadConfiguration(Seq("job1 has unknown source bad"))))
+    }
+
+    "fail on invalid format" in new AkkaTestkitSpecs2Support {
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: output
+              format: bad
+              script:
+                - "true"
+        """.stripMargin)
+
+      expectMsg(TestError(BadConfiguration(Seq("job1 format bad doesn't match source output"))))
     }
 
     "fail on 2 jobs with unknown metrics" in new AkkaTestkitSpecs2Support {
@@ -79,18 +95,18 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
         """
           jobs:
             - name: job1
-              metric: bad1
+              source: bad1
               script:
                 - "true"
             - name: job2
-              metric: bad2
+              source: bad2
               script:
                 - "true"
         """.stripMargin)
 
       expectMsg(TestError(BadConfiguration(Seq(
-        "Unknown metric bad1 in job1",
-        "Unknown metric bad2 in job2"))))
+        "job1 has unknown source bad1",
+        "job2 has unknown source bad2"))))
     }
 
     "fail on missing required job name" in new AkkaTestkitSpecs2Support {
@@ -105,7 +121,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'name'"))))
     }
 
-    "fail on missing required job metric" in new AkkaTestkitSpecs2Support {
+    "fail on missing required job source" in new AkkaTestkitSpecs2Support {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run(
         """
@@ -115,7 +131,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - "true"
         """.stripMargin)
 
-      expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'metric'"))))
+      expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'source'"))))
     }
 
     "fail on missing jobs" in new AkkaTestkitSpecs2Support {
@@ -144,7 +160,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
             - mkdir ttt
           jobs:
             - name: job1
-              metric: ignore
+              source: ignore
               script:
                 - "true"
           after_jobs:
@@ -155,6 +171,45 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(CommandExecuted("true"))
       expectMsg(CommandExecuted("rmdir ttt"))
       expectMsg(Finished)
+    }
+
+    def checkNotWindows = System.getProperty("os.name").startsWith("Windows") must be_==(false).orSkip
+
+    "time source works correctly" in new AkkaTestkitSpecs2Support {
+      checkNotWindows // source time depends on /usr/bin/time, unavailable on Windows
+
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: time
+              script:
+                - sleep 1
+                - sleep 1
+        """.stripMargin)
+
+      expectMsgClass(classOf[CommandExecuted])
+      val msg = expectMsgClass(classOf[MetricOutput])
+      msg.m must haveSuperclass[Duration]
+    }
+
+    "output source works correctly" in new AkkaTestkitSpecs2Support {
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: output
+              format: seconds
+              script:
+                - echo 1
+        """.stripMargin)
+
+      expectMsgClass(classOf[CommandExecuted])
+      val msg = expectMsgClass(classOf[MetricOutput])
+      msg.m must haveSuperclass[Duration]
+      msg.m.asInstanceOf[Duration] === Duration(1, SECONDS)
     }
   }
 }

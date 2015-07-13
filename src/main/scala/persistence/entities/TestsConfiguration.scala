@@ -8,21 +8,22 @@ case class TestsConfiguration(
   after_jobs: Option[List[String]])
 
 object JobDefinitionUtilities {
-  def timeMetricToTimeUnit(metric: String): TimeUnit = metric match {
-    case "time_days" => DAYS
-    case "time_hours" => HOURS
-    case "time_microseconds" => MICROSECONDS
-    case "time_milliseconds" => MILLISECONDS
-    case "time_minute" => MINUTES
-    case "time_nanoseconds" => NANOSECONDS
-    case "time_seconds" => SECONDS
+  def timeFormatToTimeUnit(metric: String): TimeUnit = metric match {
+    case "days" => DAYS
+    case "hours" => HOURS
+    case "microseconds" => MICROSECONDS
+    case "milliseconds" => MILLISECONDS
+    case "minute" => MINUTES
+    case "nanoseconds" => NANOSECONDS
+    case "seconds" => SECONDS
     case _ => SECONDS
   }
 }
 
 case class JobDefinition(
   name: String,
-  metric: String,
+  source: String,
+  format: Option[String],
   before_script: Option[List[String]],
   script: List[String],
   after_script: Option[List[String]])
