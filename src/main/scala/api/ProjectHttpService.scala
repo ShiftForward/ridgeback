@@ -5,7 +5,7 @@ import javax.ws.rs.Path
 import akka.actor.Props
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
-import core.{ WorkerSupervisorActor, Run, TestRunnerActor }
+import core.{ Run, WorkerSupervisorActor }
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
@@ -85,10 +85,17 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     new ApiResponse(code = 404, message = "Not Found")))
   def ProjectTriggerRoute = path("project" / IntNumber / "trigger") { (projId) =>
     post {
-      entity(as[String]) {
-        yamlStr =>
-          actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules))) ! Run(yamlStr)
-          complete(StatusCodes.Created) // TODO: return test id
+      entity(as[String]) { yamlStr =>
+        onComplete(modules.projectsDal.getProjectById(projId)) {
+          case Success(Some(proj)) =>
+            onComplete(actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules))) ? Run(yamlStr)) {
+              case Success(Some(testId)) => complete(testId, StatusCodes.Created)
+              case Success(None) => complete(StatusCodes.InternalServerError, "Could not create test")
+              case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+            }
+          case Success(None) => complete(StatusCodes.NotFound)
+          case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+        }
       }
     }
   }
