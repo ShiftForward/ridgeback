@@ -18,15 +18,13 @@ trait JobsDal {
 class JobsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit val profile: JdbcProfile) extends JobsDal with DbModule with Jobs with LazyLogging {
   import profile.api._
 
-  override def save(job: Job): Future[Int] = { db.run(jobs += job) }
+  override def save(job: Job): Future[Int] = db.run(jobs += job)
 
-  override def getJobs(): Future[Seq[Job]] = { db.run(jobs.result) }
+  override def getJobs(): Future[Seq[Job]] = db.run(jobs.result)
 
-  override def getJobsByTestId(testId: Int): Future[Seq[Job]] = { db.run(jobs.filter(_.testId === testId).result) }
+  override def getJobsByTestId(testId: Int): Future[Seq[Job]] = db.run(jobs.filter(_.testId === testId).result)
 
-  override def getJobById(id: Int): Future[Option[Job]] = { db.run(jobs.filter(_.id === id).result.headOption) }
+  override def getJobById(id: Int): Future[Option[Job]] = db.run(jobs.filter(_.id === id).result.headOption)
 
-  override def createTables(): Future[Unit] = {
-    db.run(DBIO.seq(jobs.schema.create))
-  }
+  override def createTables(): Future[Unit] = db.run(DBIO.seq(jobs.schema.create))
 }
