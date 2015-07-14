@@ -57,7 +57,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run("", 1)
 
-      expectMsg(TestError(BadConfiguration(Seq("YamlObject expected, but got YamlNull"))))
+      expectMsg(BadConfiguration(Seq("YamlObject expected, but got YamlNull")))
     }
 
     "fail on invalid source" in new AkkaTestkitSpecs2Support {
@@ -71,7 +71,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - "true"
         """.stripMargin, 1)
 
-      expectMsg(TestError(BadConfiguration(Seq("job1 has unknown source bad"))))
+      expectMsg(BadConfiguration(Seq("job1 has unknown source bad")))
     }
 
     "fail on invalid format" in new AkkaTestkitSpecs2Support {
@@ -86,7 +86,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - "true"
         """.stripMargin, 1)
 
-      expectMsg(TestError(BadConfiguration(Seq("job1 format bad doesn't match source output"))))
+      expectMsg(BadConfiguration(Seq("job1 format bad doesn't match source output")))
     }
 
     "fail on 2 jobs with unknown metrics" in new AkkaTestkitSpecs2Support {
@@ -104,9 +104,9 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - "true"
         """.stripMargin, 1)
 
-      expectMsg(TestError(BadConfiguration(Seq(
+      expectMsg(BadConfiguration(Seq(
         "job1 has unknown source bad1",
-        "job2 has unknown source bad2"))))
+        "job2 has unknown source bad2")))
     }
 
     "fail on missing required job name" in new AkkaTestkitSpecs2Support {
@@ -118,7 +118,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
               - "true"
         """.stripMargin, 1)
 
-      expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'name'"))))
+      expectMsg(BadConfiguration(Seq("YamlObject is missing required member 'name'")))
     }
 
     "fail on missing required job source" in new AkkaTestkitSpecs2Support {
@@ -131,7 +131,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
                 - "true"
         """.stripMargin, 1)
 
-      expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'source'"))))
+      expectMsg(BadConfiguration(Seq("YamlObject is missing required member 'source'")))
     }
 
     "fail on missing jobs" in new AkkaTestkitSpecs2Support {
@@ -142,14 +142,14 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
             - "true"
         """.stripMargin, 1)
 
-      expectMsg(TestError(BadConfiguration(Seq("YamlObject is missing required member 'jobs'"))))
+      expectMsg(BadConfiguration(Seq("YamlObject is missing required member 'jobs'")))
     }
 
     "fail on garbish yaml" in new AkkaTestkitSpecs2Support {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run("garbishblala", 1)
 
-      expectMsgClass(classOf[TestError])
+      expectMsgClass(classOf[TestRunnerException])
     }
 
     "tears down correctly" in new AkkaTestkitSpecs2Support {
@@ -170,7 +170,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(CommandExecuted("mkdir ttt"))
       expectMsg(CommandExecuted("true"))
       expectMsg(CommandExecuted("rmdir ttt"))
-      expectMsg(Finished)
+      expectMsg(Finished(1))
     }
 
     def checkNotWindows = System.getProperty("os.name").startsWith("Windows") must be_==(false).orSkip

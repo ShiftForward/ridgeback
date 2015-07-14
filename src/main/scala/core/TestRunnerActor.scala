@@ -45,10 +45,10 @@ class TestRunnerActor extends Actor {
 
   private def parseConfig(yamlStr: String): Try[TestsConfiguration] = {
     val config = Try(yamlStr.parseYaml.convertTo[TestsConfiguration]) match {
-      case Failure(e: DeserializationException) => throw BadConfiguration(Seq(e.getMessage))
-      case Failure(e: Throwable) => throw e
-      case Success(null) => throw BadConfiguration(Seq("Could not parse"))
-      case Success(c) if c.jobs.isEmpty => throw BadConfiguration(Seq("Test has no jobs"))
+      case Failure(e: DeserializationException) => return Failure(BadConfiguration(Seq(e.getMessage)))
+      case Failure(e: Throwable) => return Failure(e)
+      case Success(null) => return Failure(BadConfiguration(Seq("Could not parse")))
+      case Success(c) if c.jobs.isEmpty => return Failure(BadConfiguration(Seq("Test has no jobs")))
       case Success(c) => c
     }
 
@@ -69,11 +69,10 @@ class TestRunnerActor extends Actor {
       }
     })
 
-    if (errors.nonEmpty) {
-      throw BadConfiguration(errors.toList)
-    }
-
-    Success(config)
+    if (errors.nonEmpty)
+      Failure(BadConfiguration(errors.toList))
+    else
+      Success(config)
   }
 
   private def processConfig(test: TestsConfiguration): Unit = {
