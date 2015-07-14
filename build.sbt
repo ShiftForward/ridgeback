@@ -1,5 +1,8 @@
 import com.typesafe.sbt.SbtScalariform
 import scalariform.formatter.preferences._
+import NativePackagerKeys._
+
+packageArchetype.java_application
 
 lazy val formattingPreferences = FormattingPreferences().
   setPreference(AlignParameters, true).
