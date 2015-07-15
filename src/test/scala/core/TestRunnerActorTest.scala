@@ -190,6 +190,9 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
         """.stripMargin, 1)
 
       expectMsgClass(classOf[CommandExecuted])
+      expectMsgClass(classOf[CommandStderr]) // real
+      expectMsgClass(classOf[CommandStderr]) // user
+      expectMsgClass(classOf[CommandStderr]) // sys
       val msg = expectMsgClass(classOf[MetricOutput])
       msg.m must haveSuperclass[Duration]
     }
