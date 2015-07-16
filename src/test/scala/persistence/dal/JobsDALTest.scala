@@ -12,7 +12,7 @@ class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
   lazy val modules = new Modules {}
 
   override def beforeAll() = {
-    modules.jobsDal.createTables()
+    Await.result(modules.jobsDal.createTables(), Duration(5, SECONDS))
   }
 
   "Jobs DAL" should {

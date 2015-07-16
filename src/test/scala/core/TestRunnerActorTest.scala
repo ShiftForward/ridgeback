@@ -13,7 +13,6 @@ abstract class AkkaTestkitSpecs2Support extends TestKit(ActorSystem()) with Afte
 }
 
 class TestRunnerActorTest extends Specification with NoTimeConversions {
-  // sequential
 
   "A TestRunnerActor" should {
     "execute commands in order" in new AkkaTestkitSpecs2Support {

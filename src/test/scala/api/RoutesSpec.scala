@@ -12,7 +12,6 @@ import spray.httpx.SprayJsonSupport._
 import scala.concurrent.Future
 
 class RoutesSpec extends AbstractAPITest {
-  sequential
 
   def actorRefFactory = system
 
