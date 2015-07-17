@@ -1,18 +1,19 @@
 package persistence.dal
 
+import org.specs2.time.NoTimeConversions
 import persistence.entities.Project
 import utils.BeforeAllAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
+class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll with NoTimeConversions {
   sequential
 
   lazy val modules = new Modules {}
 
   override def beforeAll() = {
-    Await.result(modules.projectsDal.createTables(), Duration(5, SECONDS))
+    Await.result(modules.projectsDal.createTables(), 5.seconds)
   }
 
   "Project DAL" should {
@@ -22,7 +23,7 @@ class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
     }
 
     "return valid project on get" in {
-      val project: Option[Project] = Await.result(modules.projectsDal.getProjectById(1), Duration(5, SECONDS))
+      val project: Option[Project] = Await.result(modules.projectsDal.getProjectById(1), 5.seconds)
       project must beSome
       project.get.name === "projName"
       project.get.gitRepo === "gitRepo"
@@ -38,7 +39,7 @@ class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
     }
 
     "search by repo name" in {
-      val project = Await.result(modules.projectsDal.getProjectByGitRepo("gitRepo"), Duration(5, SECONDS))
+      val project = Await.result(modules.projectsDal.getProjectByGitRepo("gitRepo"), 5.seconds)
       project.get.id must beSome(1)
     }
   }

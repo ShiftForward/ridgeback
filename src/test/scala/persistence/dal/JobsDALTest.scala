@@ -1,18 +1,19 @@
 package persistence.dal
 
+import org.specs2.time.NoTimeConversions
 import persistence.entities.Job
 import utils.BeforeAllAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
+class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll with NoTimeConversions {
   sequential
 
   lazy val modules = new Modules {}
 
   override def beforeAll() = {
-    Await.result(modules.jobsDal.createTables(), Duration(5, SECONDS))
+    Await.result(modules.jobsDal.createTables(), 5.seconds)
   }
 
   "Jobs DAL" should {
@@ -26,7 +27,7 @@ class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
     }
 
     "return valid job on get" in {
-      val job: Option[Job] = Await.result(modules.jobsDal.getJobById(1), Duration(5, SECONDS))
+      val job: Option[Job] = Await.result(modules.jobsDal.getJobById(1), 5.seconds)
       job must beSome
       job.get.id must beSome(1)
       job.get.projId must beSome(1)
