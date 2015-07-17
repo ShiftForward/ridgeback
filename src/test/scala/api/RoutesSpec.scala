@@ -3,7 +3,7 @@ package api
 import java.time.ZonedDateTime
 
 import persistence.entities.JsonProtocol._
-import persistence.entities.{JsonProtocol, Project, SimpleProject, Test}
+import persistence.entities.{ JsonProtocol, Project, SimpleProject, Test }
 import spray.http.StatusCodes._
 import spray.http._
 import spray.httpx.SprayJsonSupport

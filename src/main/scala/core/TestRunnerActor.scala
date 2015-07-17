@@ -1,6 +1,6 @@
 package core
 
-import akka.actor.Actor
+import akka.actor.{ PoisonPill, Actor }
 import net.jcazevedo.moultingyaml._
 import persistence.entities.TestsConfiguration
 import persistence.entities.YamlProtocol._
@@ -36,6 +36,7 @@ class TestRunnerActor extends Actor {
       }
 
       sender ! Finished(testId)
+      self ! PoisonPill
   }
 
   private val sourceFormats = Map(
