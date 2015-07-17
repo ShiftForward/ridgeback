@@ -1,13 +1,13 @@
 package core
 
-import java.sql.Timestamp
+import java.time.ZonedDateTime
 import java.util.Date
 
-import akka.actor.{ Props, Actor }
-import persistence.entities.{ Test, Project }
-import utils.{ PersistenceModule, Configuration }
+import akka.actor.{ Actor, Props }
+import persistence.entities.{ Project, Test }
+import utils.{ Configuration, PersistenceModule }
 
-import scala.util.{ Success, Failure }
+import scala.util.{ Failure, Success }
 
 case class Start(yamlStr: String, proj: Project)
 
@@ -19,7 +19,7 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule) exten
     case Start(yamlStr, proj) =>
       val date = new Date
       val replyTo = sender()
-      modules.testsDal.save(Test(None, proj.id, "commit", Some(new Timestamp(date.getTime)), None)) onComplete {
+      modules.testsDal.save(Test(None, proj.id, "commit", Some(ZonedDateTime.now()), None)) onComplete {
         case Success(testId: Int) =>
           context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId)
           replyTo ! Some(testId)
@@ -35,7 +35,7 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule) exten
     case InvalidOutput(cmd, jobName) => println("InvalidOutput: " + cmd + " - " + jobName)
     case Finished(testId) =>
       println(s"Finished $testId")
-      modules.testsDal.setTestEndDate(testId, new Timestamp((new Date).getTime))
+      modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
     case BadConfiguration(errs) => println("BadConfiguration: " + errs)
     case _ => println("Unknown")
   }
