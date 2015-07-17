@@ -1,6 +1,5 @@
 package utils.json
 
-import shapeless.ToInt
 import spray.json._
 
 import scala.reflect.ClassTag
@@ -46,10 +45,8 @@ object Implicits {
       case JsNull => null
     }
   }
-
 }
 
 object ToInt {
   def unapply(str: String) = Try(str.toInt).toOption
 }
-

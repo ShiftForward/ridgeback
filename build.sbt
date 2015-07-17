@@ -43,7 +43,8 @@ lazy val ridgeback = (project in file(".")).
         "com.typesafe.akka"   %%  "akka-testkit"   % akkaV   % "test",
         "io.spray"            %%  "spray-testkit"  % sprayV  % "test",
         "org.specs2"          %%  "specs2-core"    % specs2V % "test",
-        "org.specs2"          %%  "specs2-mock"    % specs2V % "test"
+        "org.specs2"          %%  "specs2-mock"    % specs2V % "test",
+        "org.xerial"          %   "sqlite-jdbc"    % "3.8.10.1"
       )
     }
   )
