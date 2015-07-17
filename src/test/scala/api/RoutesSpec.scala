@@ -85,7 +85,7 @@ class RoutesSpec extends AbstractAPITest {
 
       Post("/project/2/trigger") ~> projects.ProjectTriggerRoute ~> check {
         handled must beTrue
-        status mustEqual Created
+        status mustEqual Accepted
         responseAs[String] mustEqual "3"
       }
     }

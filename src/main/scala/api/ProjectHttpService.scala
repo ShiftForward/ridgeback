@@ -91,12 +91,12 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
           case Success(Some(proj)) =>
             val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules)))
             onComplete(actor ? Start(yamlStr, proj)) {
-              case Success(Some(testId)) => complete(StatusCodes.Created, testId.toString)
-              case Success(_) => complete(StatusCodes.InternalServerError, "Could not create test")
-              case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+              case Success(Some(testId)) => complete(Accepted, testId.toString)
+              case Success(_) => complete(InternalServerError, "Could not create test")
+              case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
             }
-          case Success(None) => complete(StatusCodes.NotFound)
-          case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+          case Success(None) => complete(NotFound)
+          case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
         }
       }
     }
