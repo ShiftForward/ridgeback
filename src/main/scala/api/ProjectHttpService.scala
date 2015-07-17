@@ -70,8 +70,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
       entity(as[SimpleProject]) {
         projectToInsert =>
           onComplete(modules.projectsDal.save(Project(None, projectToInsert.name, projectToInsert.gitRepo))) {
-            // ignoring the number of insertedEntities because in this case it should always be one, you might check this in other cases
-            case Success(insertedEntities) => complete(StatusCodes.Created)
+            case Success(insertedEntities) => complete(Created)
             case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
       }
@@ -81,10 +80,10 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   @Path("/{projId}/trigger")
   @ApiOperation(value = "Trigger Project Build", nickname = "triggerProject", httpMethod = "POST", consumes = "text/plain; charset=UTF-8", produces = "text/plain; charset=UTF-8")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be fetched"),
+    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be built"),
     new ApiImplicitParam(name = "body", value = "YAML Definition", dataType = "String", required = true, paramType = "body")))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Ok"),
+    new ApiResponse(code = 202, message = "Accepted"),
     new ApiResponse(code = 404, message = "Not Found")))
   def ProjectTriggerRoute = path("project" / IntNumber / "trigger") { (projId) =>
     post {
@@ -104,14 +103,15 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     }
   }
 
-  @Path("/trigger/bb")
+  @Path("/{projId}/trigger/bb")
   @ApiOperation(value = "Trigger Project Build from Bitbucket", nickname = "triggerProjectBB", httpMethod = "POST", consumes = "application/json", produces = "text/plain; charset=UTF-8")
   @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be built"),
     new ApiImplicitParam(name = "body", value = "JSON Payload", dataType = "JsObject", required = true, paramType = "body")))
   @ApiResponses(Array(
-    new ApiResponse(code = 200, message = "Ok"),
+    new ApiResponse(code = 202, message = "Accepted"),
     new ApiResponse(code = 404, message = "Not Found")))
-  def ProjectTriggerRouteBB = path("project" / "trigger" / "bb") {
+  def ProjectTriggerRouteBB = path("project" / IntNumber / "trigger" / "bb") { (projId) =>
     post {
       entity(as[JsObject]) { (json: JsObject) =>
         json.getPath[JsString]("comment.content.raw") match {
@@ -123,10 +123,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
 
             (commitPrOpt, commitOpt, branchPrOpt, repoNameOpt) match {
               case (Some(commit), None, Some(branch), Some(repoName)) => // PR comment hook
-                val gitUrl = s"git@bitbucket.org:${repoName.value}.git"
-                val gitUrlHttp = s""
 
-                onSuccess(modules.projectsDal.getProjectByGitRepo(gitUrl)) {
+                onSuccess(modules.projectsDal.getProjectById(projId)) {
                   case Some(proj) =>
                     val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules)))
                     actor ! CloneRepository(commit.value, proj)
