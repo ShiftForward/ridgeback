@@ -9,7 +9,7 @@ import scala.util.{ Failure, Success, Try }
 
 trait TestRunnerException extends Exception
 case class BadConfiguration(errors: Seq[String]) extends Exception(errors.mkString(";")) with TestRunnerException
-case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends TestRunnerException
+case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends Exception(s"$cmd - $exitCode - $jobName") with TestRunnerException
 case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends TestRunnerException
 
 case class Run(yamlStr: String, testId: Int)
@@ -21,7 +21,7 @@ case class MetricOutput(m: Any, jobName: String)
 case class Finished(testId: Int)
 
 class TestRunnerActor extends Actor {
-  override def receive = {
+  def receive = {
     case Run(yamlStr, testId) =>
 
       parseConfig(yamlStr) match {

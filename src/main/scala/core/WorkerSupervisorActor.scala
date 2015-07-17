@@ -8,13 +8,27 @@ import persistence.entities.{ Project, Test }
 import utils.{ Configuration, PersistenceModule }
 
 import scala.util.{ Failure, Success }
+import scala.util.{ Try, Success, Failure }
+import scala.sys.process._
 
+case class CloneRepository(commit: String, proj: Project)
 case class Start(yamlStr: String, proj: Project)
 
 class WorkerSupervisorActor(modules: Configuration with PersistenceModule) extends Actor {
   import context._
 
   def receive: Receive = {
+
+    case CloneRepository(commit, proj) =>
+
+      val dir = Files.createTempDirectory("repos")
+      val dirFile = dir.toFile
+
+      Seq("git", "clone", "--quiet", "--depth=1", proj.gitRepo, dir.toString).!
+      Process(Seq("git", "checkout", "-qf", commit), dirFile).!
+      val ymlFile = Process(Seq("cat", ".perftests.yml"), dirFile).!!
+
+      self ! Start(ymlFile, proj)
 
     case Start(yamlStr, proj) =>
       val replyTo = sender()

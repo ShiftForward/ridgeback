@@ -6,14 +6,16 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
-import core.{ Start, WorkerSupervisorActor }
+import core.{ CloneRepository, Start, WorkerSupervisorActor }
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
 import spray.http._
 import spray.httpx.SprayJsonSupport
+import spray.json.{ JsString, JsObject }
 import spray.routing._
 import utils._
+import utils.json.Implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -97,6 +99,45 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
             }
           case Success(None) => complete(NotFound)
           case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+        }
+      }
+    }
+  }
+
+  @Path("/trigger/bb")
+  @ApiOperation(value = "Trigger Project Build from Bitbucket", nickname = "triggerProjectBB", httpMethod = "POST", consumes = "application/json", produces = "text/plain; charset=UTF-8")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "body", value = "JSON Payload", dataType = "JsObject", required = true, paramType = "body")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Ok"),
+    new ApiResponse(code = 404, message = "Not Found")))
+  def ProjectTriggerRouteBB = path("project" / "trigger" / "bb") {
+    post {
+      entity(as[JsObject]) { (json: JsObject) =>
+        json.getPath[JsString]("comment.content.raw") match {
+          case Some(comment) if comment.value.contains("PERFTESTS") =>
+            val commitPrOpt = json.getPath[JsString]("pullrequest.source.commit.hash")
+            val branchPrOpt = json.getPath[JsString]("pullrequest.source.branch.name")
+            val commitOpt = json.getPath[JsString]("commit.hash")
+            val repoNameOpt = json.getPath[JsString]("repository.full_name")
+
+            (commitPrOpt, commitOpt, branchPrOpt, repoNameOpt) match {
+              case (Some(commit), None, Some(branch), Some(repoName)) => // PR comment hook
+                val gitUrl = s"git@bitbucket.org:${repoName.value}.git"
+                val gitUrlHttp = s""
+
+                onSuccess(modules.projectsDal.getProjectByGitRepo(gitUrl)) {
+                  case Some(proj) =>
+                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules)))
+                    actor ! CloneRepository(commit.value, proj)
+                    complete(Accepted)
+                  case None => complete(NotFound, s"Repository $gitUrl not found")
+                  case ex => complete(InternalServerError, s"An error occurred: $ex")
+                }
+              case (None, Some(commit), None, Some(repoName)) => ??? // commit comment hook
+              case _ => complete(NoContent)
+            }
+          case _ => complete(NoContent)
         }
       }
     }
