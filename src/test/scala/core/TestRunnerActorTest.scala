@@ -193,7 +193,6 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsgClass(classOf[CommandStderr]) // user
       expectMsgClass(classOf[CommandStderr]) // sys
       val msg = expectMsgClass(classOf[MetricOutput])
-      msg.m must haveSuperclass[Duration]
     }
 
     "output source works correctly" in new AkkaTestkitSpecs2Support {
@@ -210,8 +209,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
 
       expectMsgClass(classOf[CommandExecuted])
       val msg = expectMsgClass(classOf[MetricOutput])
-      msg.m must haveSuperclass[Duration]
-      msg.m.asInstanceOf[Duration] === Duration(1, SECONDS)
+      msg.duration === 1.seconds
     }
   }
 }

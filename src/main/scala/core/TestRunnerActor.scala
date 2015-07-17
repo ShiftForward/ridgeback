@@ -6,6 +6,7 @@ import persistence.entities.TestsConfiguration
 import persistence.entities.YamlProtocol._
 
 import scala.util.{ Failure, Success, Try }
+import scala.concurrent.duration._
 
 trait TestRunnerException extends Exception
 case class BadConfiguration(errors: Seq[String]) extends Exception(errors.mkString(";")) with TestRunnerException
@@ -17,8 +18,8 @@ case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
-case class MetricOutput(m: Any, jobName: String)
 case class Finished(testId: Int)
+case class MetricOutput(duration: Duration, jobName: String, source: String)
 
 class TestRunnerActor extends Actor {
   def receive = {

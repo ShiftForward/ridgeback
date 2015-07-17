@@ -23,7 +23,7 @@ class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll with No
     }
 
     "return 1 on save" in {
-      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", "format", 1.0)) must beEqualTo(1).await
+      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", 1.seconds)) must beEqualTo(1).await
     }
 
     "return valid job on get" in {
@@ -34,8 +34,7 @@ class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll with No
       job.get.testId must beSome(1)
       job.get.jobName === "name"
       job.get.source === "source"
-      job.get.format === "format"
-      job.get.value must beCloseTo(1.0 within 2.significantFigures)
+      job.get.duration === 1.seconds
     }
 
     "return no jobs on bad get" in {
@@ -44,7 +43,7 @@ class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll with No
     }
 
     "return 2 jobs after inserting another one" in {
-      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", "format", 1.0)) must beEqualTo(1).await
+      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", 1.seconds)) must beEqualTo(1).await
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](2).await
       modules.jobsDal.getJobsByTestId(1) must haveSize[Seq[Job]](2).await
     }
