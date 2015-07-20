@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
-@Api(value = "/test", description = "Operations about tests")
+@Api(value = "/tests", description = "Operations about tests")
 abstract class TestHttpService(modules: Configuration with PersistenceModule) extends HttpService {
 
   import JsonProtocol._
@@ -28,7 +28,7 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Ok"),
     new ApiResponse(code = 404, message = "Not Found")))
-  def TestGetRoute = path("test" / IntNumber) { (testId) =>
+  def TestGetRoute = path("tests" / IntNumber) { (testId) =>
     get {
       respondWithMediaType(`application/json`) {
         onComplete(modules.testsDal.getTestById(testId)) {
@@ -43,7 +43,7 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "projId", required = false, dataType = "integer", paramType = "query", value = "ID of project that needs tests to be fetched")))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
-  def TestsGetRoute = path("test") {
+  def TestsGetRoute = path("tests") {
     parameters('projId.?) { (projIdStr: Option[String]) =>
       {
         get {
@@ -72,7 +72,7 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
   @ApiResponses(Array(
     new ApiResponse(code = 400, message = "Bad Request"),
     new ApiResponse(code = 201, message = "Entity Created")))
-  def TestPostRoute = path("test") {
+  def TestPostRoute = path("tests") {
     post {
       entity(as[SimpleTest]) {
         testToInsert =>
