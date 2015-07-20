@@ -65,23 +65,4 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
       }
     }
   }
-
-  @ApiOperation(value = "Add Test", nickname = "addTest", httpMethod = "POST", consumes = "application/json", produces = "text/plain; charset=UTF-8")
-  @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "body", value = "Test Object", dataType = "persistence.entities.SimpleTest", required = true, paramType = "body")))
-  @ApiResponses(Array(
-    new ApiResponse(code = 400, message = "Bad Request"),
-    new ApiResponse(code = 201, message = "Entity Created")))
-  def TestPostRoute = path("tests") {
-    post {
-      entity(as[SimpleTest]) {
-        testToInsert =>
-          onComplete(modules.testsDal.save(Test(None, testToInsert.projId, testToInsert.commit, None /* TODO perhaps define start date */ , None))) {
-            // ignoring the number of insertedEntities because in this case it should always be one, you might check this in other cases
-            case Success(insertedEntities) => complete(StatusCodes.Created)
-            case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-          }
-      }
-    }
-  }
 }
