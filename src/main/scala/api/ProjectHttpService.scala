@@ -114,7 +114,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     post {
       entity(as[JsObject]) { (json: JsObject) =>
         json.getPath[JsString]("comment.content.raw") match {
-          case Some(comment) if comment.value.contains("PERFTESTS") =>
+          case Some(comment) if comment.value.contains(modules.config.getString("worker.keyword")) =>
             val commitPrOpt = json.getPath[JsString]("pullrequest.source.commit.hash")
             val branchPrOpt = json.getPath[JsString]("pullrequest.source.branch.name")
             val prIdOpt = json.getPath[JsNumber]("comment.pullrequest.id")
