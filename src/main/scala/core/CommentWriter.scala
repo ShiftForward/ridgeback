@@ -1,18 +1,23 @@
 package core
 
-import akka.actor.{ PoisonPill, Actor }
+import akka.actor.{ ActorRefFactory, PoisonPill, Actor }
+import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
 import persistence.entities.{ Project, PullRequestSource }
 import spray.client.pipelining._
 import spray.http.{ BasicHttpCredentials, HttpRequest, _ }
 import utils.{ Configuration, PersistenceModule }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
 case class SendComment(proj: Project, testId: Int, prSource: PullRequestSource)
 
-class BitbucketActor(modules: Configuration with PersistenceModule) extends Actor with LazyLogging {
+trait CommentWriter {
+  def apply(prSource: PullRequestSource, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory, ec: ExecutionContext): Future[HttpResponse]
+}
+
+class CommentWriterActor(modules: Configuration with PersistenceModule, commentWriter: CommentWriter) extends Actor with LazyLogging {
   import context.dispatcher
 
   def receive: Receive = {
@@ -35,14 +40,7 @@ class BitbucketActor(modules: Configuration with PersistenceModule) extends Acto
 
   def writeComment(prSource: PullRequestSource, msg: String): Unit = {
 
-    val url = s"https://bitbucket.org/api/1.0/repositories/${prSource.repoFullName}/pullrequests/${prSource.pullRequestId}/comments"
-
-    val pipeline: HttpRequest => Future[HttpResponse] = (
-      addCredentials(BasicHttpCredentials(modules.config.getString("bitbucket.user"), modules.config.getString("bitbucket.pass")))
-      ~> sendReceive)
-
-    val response: Future[HttpResponse] =
-      pipeline(Post(url, FormData(Seq("content" -> msg))))
+    val response = commentWriter(prSource, msg, modules)
 
     response onComplete {
       case Success(res: HttpResponse) =>
@@ -53,5 +51,17 @@ class BitbucketActor(modules: Configuration with PersistenceModule) extends Acto
       case Failure(error) =>
         logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} failed", error)
     }
+  }
+}
+
+object BitbucketCommentWriter extends CommentWriter {
+  def apply(prSource: PullRequestSource, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"https://bitbucket.org/api/1.0/repositories/${prSource.repoFullName}/pullrequests/${prSource.pullRequestId}/comments"
+
+    val pipeline: HttpRequest => Future[HttpResponse] = (
+      addCredentials(BasicHttpCredentials(modules.config.getString("bitbucket.user"), modules.config.getString("bitbucket.pass")))
+      ~> sendReceive)
+
+    pipeline(Post(url, FormData(Seq("content" -> msg))))
   }
 }

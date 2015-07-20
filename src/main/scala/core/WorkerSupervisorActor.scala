@@ -56,6 +56,7 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
     case Finished =>
       println(s"Finished $testId")
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
+      context.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter)))
       context.stop(self)
     case BadConfiguration(errs) => println("BadConfiguration: " + errs)
     case _ => println("Unknown")
