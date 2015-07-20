@@ -16,7 +16,7 @@ import spray.routing._
 import utils._
 import utils.json.Implicits._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
@@ -27,6 +27,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   import SprayJsonSupport._
 
   implicit val timeout = Timeout(5.seconds)
+  implicit val ec: ExecutionContext = actorRefFactory.dispatcher
 
   @ApiOperation(httpMethod = "GET", response = classOf[Project], value = "Returns a project based on ID")
   @ApiImplicitParams(Array(

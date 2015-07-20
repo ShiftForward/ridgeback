@@ -10,7 +10,7 @@ import spray.httpx.SprayJsonSupport
 import spray.routing._
 import utils.{ Configuration, PersistenceModule }
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
@@ -21,6 +21,7 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
   import SprayJsonSupport._
 
   implicit val timeout = Timeout(5.seconds)
+  implicit val ec: ExecutionContext = actorRefFactory.dispatcher
 
   @ApiOperation(httpMethod = "GET", response = classOf[Test], value = "Returns a test based on ID")
   @ApiImplicitParams(Array(
