@@ -10,7 +10,7 @@ import utils.Configuration
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 
-object TestCommentWriter extends CommentWriter {
+class TestCommentWriter extends CommentWriter {
   var called = false
 
   def apply(prSource: PullRequestSource, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory, ec: ExecutionContext): Future[HttpResponse] = {
@@ -32,13 +32,14 @@ class CommentWriterTest extends AbstractAPITest with NoTimeConversions {
       val proj = Project(Some(1), "name", "repo")
       val testId = 1
       val prSource = PullRequestSource("tests", "repo", "commit", 1)
+      val commentWriter = new TestCommentWriter
 
       modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(Job(Some(1), proj.id, Some(testId), "job", "source", 1.seconds)))
 
-      val actor = system.actorOf(Props(new CommentWriterActor(modules, TestCommentWriter)))
+      val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
       actor ! SendComment(proj, testId, prSource)
 
-      TestCommentWriter.called must be_==(true).eventually
+      commentWriter.called must be_==(true).eventually
     }
   }
 }
