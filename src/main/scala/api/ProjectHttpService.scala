@@ -6,7 +6,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
-import core.{ CloneRepository, Start, WorkerSupervisorActor }
+import core.{ PayloadExtractor, CloneRepository, Start, WorkerSupervisorActor }
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
@@ -30,7 +30,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
 
   @ApiOperation(httpMethod = "GET", response = classOf[Project], value = "Returns a project based on ID")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be fetched")))
+    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path",
+      value = "ID of project that needs to be fetched")))
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Ok"),
     new ApiResponse(code = 404, message = "Not Found")))
@@ -58,9 +59,11 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     }
   }
 
-  @ApiOperation(value = "Add Project", nickname = "addProject", httpMethod = "POST", consumes = "application/json", produces = "text/plain; charset=UTF-8")
+  @ApiOperation(value = "Add Project", nickname = "addProject", httpMethod = "POST", consumes = "application/json",
+    produces = "text/plain; charset=UTF-8")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "body", value = "Project Object", dataType = "persistence.entities.SimpleProject", required = true, paramType = "body")))
+    new ApiImplicitParam(name = "body", value = "Project Object", dataType = "persistence.entities.SimpleProject",
+      required = true, paramType = "body")))
   @ApiResponses(Array(
     new ApiResponse(code = 400, message = "Bad Request"),
     new ApiResponse(code = 201, message = "Entity Created")))
@@ -77,9 +80,11 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   }
 
   @Path("/{projId}/trigger")
-  @ApiOperation(value = "Trigger Project Build", nickname = "triggerProject", httpMethod = "POST", consumes = "text/plain; charset=UTF-8", produces = "text/plain; charset=UTF-8")
+  @ApiOperation(value = "Trigger Project Build", nickname = "triggerProject", httpMethod = "POST",
+    consumes = "text/plain;charset=UTF-8", produces = "text/plain; charset=UTF-8")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be built"),
+    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path",
+      value = "ID of project that needs to be built"),
     new ApiImplicitParam(name = "body", value = "YAML Definition", dataType = "String", required = true, paramType = "body")))
   @ApiResponses(Array(
     new ApiResponse(code = 202, message = "Accepted"),
@@ -103,40 +108,35 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   }
 
   @Path("/{projId}/trigger/bb")
-  @ApiOperation(value = "Trigger Project Build from Bitbucket", nickname = "triggerProjectBB", httpMethod = "POST", consumes = "application/json", produces = "text/plain; charset=UTF-8")
+  @ApiOperation(value = "Trigger Project Build from Bitbucket", nickname = "triggerProjectBB", httpMethod = "POST",
+    consumes = "application/json", produces = "text/plain; charset=UTF-8")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "projId", value = "ID of project that needs to be built", dataType = "integer", required = true, paramType = "path"),
+    new ApiImplicitParam(name = "projId", value = "ID of project that needs to be built", dataType = "integer",
+      required = true, paramType = "path"),
     new ApiImplicitParam(name = "body", value = "JSON Payload", dataType = "String", required = true, paramType = "body")))
   @ApiResponses(Array(
     new ApiResponse(code = 202, message = "Accepted"),
+    new ApiResponse(code = 204, message = "No Content"),
     new ApiResponse(code = 404, message = "Not Found")))
   def ProjectTriggerRouteBB = path("project" / IntNumber / "trigger" / "bb") { (projId) =>
     post {
-      entity(as[JsObject]) { (json: JsObject) =>
-        json.getPath[JsString]("comment.content.raw") match {
-          case Some(comment) if comment.value.contains(modules.config.getString("worker.keyword")) =>
-            val commitPrOpt = json.getPath[JsString]("pullrequest.source.commit.hash")
-            val branchPrOpt = json.getPath[JsString]("pullrequest.source.branch.name")
-            val prIdOpt = json.getPath[JsNumber]("comment.pullrequest.id")
-            val commitOpt = json.getPath[JsString]("commit.hash")
-            val repoNameOpt = json.getPath[JsString]("repository.full_name")
-
-            (commitPrOpt, commitOpt, branchPrOpt, prIdOpt, repoNameOpt) match {
-              case (Some(commit), None, Some(branch), Some(prId), Some(repoName)) => // PR comment hook
-
+      entity(as[JsObject]) { json =>
+        PayloadExtractor.extractComment("bitbucket", json) match {
+          case Some(comment) if comment.contains(modules.config.getString("worker.keyword")) =>
+            PayloadExtractor.extract("bitbucket", json) match {
+              case Some(Left(pr)) =>
                 onSuccess(modules.projectsDal.getProjectById(projId)) {
                   case Some(proj) =>
-                    val prSource = PullRequestSource("bitbucket", repoName.value, prId.convertTo[Int])
-                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, Some(prSource))))
-                    actor ! CloneRepository(commit.value)
+                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, Some(pr))))
+                    actor ! CloneRepository(pr.commit)
                     complete(Accepted)
                   case None => complete(NotFound)
                   case ex => complete(InternalServerError, s"An error occurred: $ex")
                 }
-              case (None, Some(commit), None, None, Some(repoName)) => ??? // commit comment hook
-              case _ => complete(NoContent)
+              case Some(Right(commit)) => ???
+              case None => complete(NoContent)
             }
-          case _ => complete(NoContent)
+          case None => complete(NoContent)
         }
       }
     }
