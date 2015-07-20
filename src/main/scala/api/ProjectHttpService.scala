@@ -10,9 +10,8 @@ import core.{ CloneRepository, Start, WorkerSupervisorActor }
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
-import spray.http._
 import spray.httpx.SprayJsonSupport
-import spray.json.{ JsString, JsObject }
+import spray.json.{ JsNumber, JsString, JsObject }
 import spray.routing._
 import utils._
 import utils.json.Implicits._
@@ -90,8 +89,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
       entity(as[String]) { yamlStr =>
         onComplete(modules.projectsDal.getProjectById(projId)) {
           case Success(Some(proj)) =>
-            val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules)))
-            onComplete(actor ? Start(yamlStr, proj)) {
+            val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, None)))
+            onComplete(actor ? Start(yamlStr)) {
               case Success(Some(testId)) => complete(Accepted, testId.toString)
               case Success(_) => complete(InternalServerError, "Could not create test")
               case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
@@ -106,8 +105,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   @Path("/{projId}/trigger/bb")
   @ApiOperation(value = "Trigger Project Build from Bitbucket", nickname = "triggerProjectBB", httpMethod = "POST", consumes = "application/json", produces = "text/plain; charset=UTF-8")
   @ApiImplicitParams(Array(
-    new ApiImplicitParam(name = "projId", required = true, dataType = "integer", paramType = "path", value = "ID of project that needs to be built"),
-    new ApiImplicitParam(name = "body", value = "JSON Payload", dataType = "JsObject", required = true, paramType = "body")))
+    new ApiImplicitParam(name = "projId", value = "ID of project that needs to be built", dataType = "integer", required = true, paramType = "path"),
+    new ApiImplicitParam(name = "body", value = "JSON Payload", dataType = "String", required = true, paramType = "body")))
   @ApiResponses(Array(
     new ApiResponse(code = 202, message = "Accepted"),
     new ApiResponse(code = 404, message = "Not Found")))
@@ -118,21 +117,23 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
           case Some(comment) if comment.value.contains("PERFTESTS") =>
             val commitPrOpt = json.getPath[JsString]("pullrequest.source.commit.hash")
             val branchPrOpt = json.getPath[JsString]("pullrequest.source.branch.name")
+            val prIdOpt = json.getPath[JsNumber]("comment.pullrequest.id")
             val commitOpt = json.getPath[JsString]("commit.hash")
             val repoNameOpt = json.getPath[JsString]("repository.full_name")
 
-            (commitPrOpt, commitOpt, branchPrOpt, repoNameOpt) match {
-              case (Some(commit), None, Some(branch), Some(repoName)) => // PR comment hook
+            (commitPrOpt, commitOpt, branchPrOpt, prIdOpt, repoNameOpt) match {
+              case (Some(commit), None, Some(branch), Some(prId), Some(repoName)) => // PR comment hook
 
                 onSuccess(modules.projectsDal.getProjectById(projId)) {
                   case Some(proj) =>
-                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules)))
-                    actor ! CloneRepository(commit.value, proj)
+                    val prSource = PullRequestSource("bitbucket", repoName.value, prId.convertTo[Int])
+                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, Some(prSource))))
+                    actor ! CloneRepository(commit.value)
                     complete(Accepted)
-                  case None => complete(NotFound, s"Repository $gitUrl not found")
+                  case None => complete(NotFound)
                   case ex => complete(InternalServerError, s"An error occurred: $ex")
                 }
-              case (None, Some(commit), None, Some(repoName)) => ??? // commit comment hook
+              case (None, Some(commit), None, None, Some(repoName)) => ??? // commit comment hook
               case _ => complete(NoContent)
             }
           case _ => complete(NoContent)

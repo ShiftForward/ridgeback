@@ -18,8 +18,8 @@ case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
-case class Finished(testId: Int)
 case class MetricOutput(duration: Duration, jobName: String, source: String)
+object Finished
 
 class TestRunnerActor extends Actor {
   def receive = {
@@ -36,7 +36,7 @@ class TestRunnerActor extends Actor {
           }
       }
 
-      sender ! Finished(testId)
+      sender ! Finished
       context.stop(self)
   }
 

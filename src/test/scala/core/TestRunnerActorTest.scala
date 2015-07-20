@@ -169,7 +169,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(CommandExecuted("mkdir ttt"))
       expectMsg(CommandExecuted("true"))
       expectMsg(CommandExecuted("rmdir ttt"))
-      expectMsg(Finished(1))
+      expectMsg(Finished)
     }
 
     def checkNotWindows = System.getProperty("os.name").startsWith("Windows") must be_==(false).orSkip
