@@ -1,14 +1,14 @@
 package core
 
+import java.nio.file.Files
 import java.time.ZonedDateTime
-import java.util.Date
 
 import akka.actor.{ Actor, Props }
-import persistence.entities.{ Project, Test }
+import persistence.entities.{ Job, Project, PullRequestSource, Test }
 import utils.{ Configuration, PersistenceModule }
 
-import scala.util.{ Failure, Success }
 import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.sys.process._
 import scala.util.{ Failure, Success }
 
@@ -35,7 +35,7 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
 
     case Start(yamlStr) =>
       val replyTo = sender()
-      modules.testsDal.save(Test(None, proj.id, "commit", Some(ZonedDateTime.now()), None)) onComplete {
+      modules.testsDal.save(Test(None, project.id, "commit", Some(ZonedDateTime.now()), None)) onComplete {
         case Success(test: Int) =>
           testId = Some(test)
           context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId.get)
