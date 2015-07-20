@@ -18,10 +18,7 @@ case class Start(yamlStr: String)
 class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project, prSource: Option[PullRequestSource]) extends Actor {
   import context._
 
-  var testId: Option[Int] = None
-
   def receive: Receive = {
-
     case CloneRepository(commit) =>
 
       val dir = Files.createTempDirectory("repos")
@@ -36,15 +33,17 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
     case Start(yamlStr) =>
       val replyTo = sender()
       modules.testsDal.save(Test(None, project.id, "commit", Some(ZonedDateTime.now()), None)) onComplete {
-        case Success(test: Int) =>
-          testId = Some(test)
-          context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId.get)
+        case Success(testId: Int) =>
+          context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId)
           replyTo ! testId
+          become(running(testId))
         case Failure(t) =>
           replyTo ! t
           context.stop(self)
       }
+  }
 
+  def running(testId: Int): Receive = {
     case TestError(ex) => println("TestError: " + ex)
     case CommandExecuted(cmd) => println("CommandExecuted: " + cmd)
     case CommandFailed(cmd, exitCode, jobName) => println("CommandFailed: " + cmd + " - " + exitCode + " - " + jobName)
@@ -52,11 +51,11 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
     case CommandStderr(str) => println("CommandStderr: " + str)
     case MetricOutput(duration, jobName, source) =>
       println("MetricOutput: " + duration + " - " + jobName)
-      Await.result(modules.jobsDal.save(Job(None, project.id, testId, jobName, source, duration)), 5.seconds)
+      Await.result(modules.jobsDal.save(Job(None, project.id, Some(testId), jobName, source, duration)), 5.seconds)
     case InvalidOutput(cmd, jobName) => println("InvalidOutput: " + cmd + " - " + jobName)
     case Finished =>
       println(s"Finished $testId")
-      modules.testsDal.setTestEndDate(testId.get, ZonedDateTime.now())
+      modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
       context.stop(self)
     case BadConfiguration(errs) => println("BadConfiguration: " + errs)
     case _ => println("Unknown")
