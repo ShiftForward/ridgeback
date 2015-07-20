@@ -3,7 +3,7 @@ package core
 import java.time.ZonedDateTime
 import java.util.Date
 
-import akka.actor.{ PoisonPill, Actor, Props }
+import akka.actor.{ Actor, Props }
 import persistence.entities.{ Project, Test }
 import utils.{ Configuration, PersistenceModule }
 
@@ -36,7 +36,7 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule) exten
     case Finished(testId) =>
       println(s"Finished $testId")
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
-      self ! PoisonPill
+      context.stop(self)
     case BadConfiguration(errs) => println("BadConfiguration: " + errs)
     case _ => println("Unknown")
   }
