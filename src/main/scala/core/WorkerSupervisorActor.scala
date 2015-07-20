@@ -17,13 +17,14 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule) exten
   def receive: Receive = {
 
     case Start(yamlStr, proj) =>
-      val date = new Date
       val replyTo = sender()
       modules.testsDal.save(Test(None, proj.id, "commit", Some(ZonedDateTime.now()), None)) onComplete {
         case Success(testId: Int) =>
           context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId)
           replyTo ! Some(testId)
-        case Failure(t) => replyTo ! t
+        case Failure(t) =>
+          replyTo ! t
+          context.stop(self)
       }
 
     case TestError(ex) => println("TestError: " + ex)
