@@ -6,15 +6,14 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
-import core.{ PayloadExtractor, CloneRepository, Start, WorkerSupervisorActor }
+import core.{ CloneRepository, PayloadExtractor, Start, WorkerSupervisorActor }
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport
-import spray.json.{ JsNumber, JsString, JsObject }
+import spray.json.JsObject
 import spray.routing._
 import utils._
-import utils.json.Implicits._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -95,10 +94,10 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
       entity(as[String]) { yamlStr =>
         onComplete(modules.projectsDal.getProjectById(projId)) {
           case Success(Some(proj)) =>
-            val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, None)))
+            val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj)))
             onComplete(actor ? Start(yamlStr)) {
-              case Success(Some(testId)) => complete(Accepted, testId.toString)
-              case Success(_) => complete(InternalServerError, "Could not create test")
+              case Success(testId: Int) => complete(Accepted, testId.toString)
+              case Success(ex) => complete(InternalServerError, s"Could not create test: $ex")
               case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
             }
           case Success(None) => complete(NotFound)
@@ -128,8 +127,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
               case Some(Left(pr)) =>
                 onSuccess(modules.projectsDal.getProjectById(projId)) {
                   case Some(proj) =>
-                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, Some(pr))))
-                    actor ! CloneRepository(pr.commit)
+                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj)))
+                    actor ! CloneRepository(pr)
                     complete(Accepted)
                   case None => complete(NotFound)
                   case ex => complete(InternalServerError, s"An error occurred: $ex")

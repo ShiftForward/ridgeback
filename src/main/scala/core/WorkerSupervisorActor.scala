@@ -12,20 +12,20 @@ import scala.concurrent.duration._
 import scala.sys.process._
 import scala.util.{ Failure, Success }
 
-case class CloneRepository(commit: String)
+case class CloneRepository(pr: PullRequestSource)
 case class Start(yamlStr: String)
 
-class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project, prSource: Option[PullRequestSource]) extends Actor {
+class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project) extends Actor {
   import context._
 
   def receive: Receive = {
-    case CloneRepository(commit) =>
+    case CloneRepository(pr) =>
 
       val dir = Files.createTempDirectory("repos")
       val dirFile = dir.toFile
 
       Seq("git", "clone", "--quiet", "--depth=1", project.gitRepo, dir.toString).!
-      Process(Seq("git", "checkout", "-qf", commit), dirFile).!
+      Process(Seq("git", "checkout", "-qf", pr.commit), dirFile).!
       val ymlFile = Process(Seq("cat", ".perftests.yml"), dirFile).!!
 
       self ! Start(ymlFile)
@@ -33,10 +33,10 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
     case Start(yamlStr) =>
       val replyTo = sender()
       modules.testsDal.save(Test(None, project.id, "commit", Some(ZonedDateTime.now()), None)) onComplete {
-        case Success(testId: Int) =>
+        case Success(testId) =>
           context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId)
-          replyTo ! testId
           become(running(testId))
+          replyTo ! testId
         case Failure(t) =>
           replyTo ! t
           context.stop(self)

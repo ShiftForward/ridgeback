@@ -46,7 +46,10 @@ class BitbucketActor(modules: Configuration with PersistenceModule) extends Acto
 
     response onComplete {
       case Success(res: HttpResponse) =>
-        logger.info(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
+        if (res.status.isSuccess)
+          logger.info(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
+        else
+          logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
       case Failure(error) =>
         logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} failed", error)
     }
