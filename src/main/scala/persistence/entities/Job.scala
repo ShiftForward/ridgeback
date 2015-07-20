@@ -36,4 +36,6 @@ trait Jobs extends Profile {
     // def project = foreignKey("job_project", projId, projectsTable)(_.id, onDelete = ForeignKeyAction.Cascade)
     // def test = foreignKey("job_test", testId, testsTable)(_.id, onDelete = ForeignKeyAction.Cascade)
   }
+
+  var jobs = TableQuery[Jobs]
 }

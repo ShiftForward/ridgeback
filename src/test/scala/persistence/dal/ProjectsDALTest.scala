@@ -12,7 +12,7 @@ class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
   lazy val modules = new Modules {}
 
   override def beforeAll() = {
-    modules.projectsDal.createTables()
+    Await.result(modules.projectsDal.createTables(), Duration(5, SECONDS))
   }
 
   "Project DAL" should {
@@ -22,10 +22,10 @@ class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
     }
 
     "return valid project on get" in {
-      val supplier: Option[Project] = Await.result(modules.projectsDal.getProjectById(1), Duration(5, SECONDS))
-      supplier must beSome
-      supplier.get.name === "projName"
-      supplier.get.gitRepo === "gitRepo"
+      val project: Option[Project] = Await.result(modules.projectsDal.getProjectById(1), Duration(5, SECONDS))
+      project must beSome
+      project.get.name === "projName"
+      project.get.gitRepo === "gitRepo"
     }
 
     "return no projects on bad get" in {

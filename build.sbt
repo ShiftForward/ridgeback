@@ -24,7 +24,7 @@ lazy val ridgeback = (project in file(".")).
   settings(
     name := "ridgeback",
     libraryDependencies ++= {
-      val akkaV = "2.3.11"
+      val akkaV = "2.3.12"
       val sprayV = "1.3.3"
       val specs2V = "2.4.17"
       Seq(
@@ -32,7 +32,7 @@ lazy val ridgeback = (project in file(".")).
         "com.h2database"      %   "h2"             % "1.4.187",
         "com.typesafe.akka"   %%  "akka-actor"     % akkaV,
         "com.typesafe.slick"  %%  "slick"          % "3.0.0",
-        "com.zaxxer"          %   "HikariCP-java6" % "2.3.8",
+        "com.zaxxer"          %   "HikariCP-java6" % "2.3.9",
         "io.spray"            %%  "spray-can"      % sprayV,
         "io.spray"            %%  "spray-json"     % "1.3.2",
         "io.spray"            %%  "spray-routing"  % sprayV,

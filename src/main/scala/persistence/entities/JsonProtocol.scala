@@ -1,21 +1,25 @@
 package persistence.entities
 
+import java.time.format.DateTimeFormatter
+import java.time.{ ZonedDateTime, LocalDateTime }
+
 import spray.json.DefaultJsonProtocol
-import java.sql.Timestamp
 
 import spray.json._
 
 object JsonProtocol extends DefaultJsonProtocol {
-  implicit object TimestampJsonFormat extends JsonFormat[Timestamp] {
-    def write(x: Timestamp) = JsNumber(x.getTime)
+  implicit object ZonedDateTimeJsonFormat extends JsonFormat[ZonedDateTime] {
+    def write(x: ZonedDateTime) = JsString(x.format(DateTimeFormatter.ISO_INSTANT))
     def read(value: JsValue) = value match {
-      case JsNumber(x) => new Timestamp(x.longValue())
-      case x => deserializationError("Expected Timestamp as JsNumber, but got " + x)
+      case JsString(x) => ZonedDateTime.parse(x)
+      case x => deserializationError("Expected LocalDateTime as JsString, but got " + x)
     }
   }
 
   implicit val projectFormat = jsonFormat3(Project)
   implicit val testFormat = jsonFormat5(Test)
+  implicit val jobFormat = jsonFormat7(Job)
   implicit val simpleProjectFormat = jsonFormat2(SimpleProject)
   implicit val simpleTestFormat = jsonFormat2(SimpleTest)
+  implicit val simpleJobFormat = jsonFormat6(SimpleJob)
 }

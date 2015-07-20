@@ -12,22 +12,31 @@ case class BadConfiguration(errors: Seq[String]) extends Exception(errors.mkStri
 case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends TestRunnerException
 case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends TestRunnerException
 
-case class Run(yamlStr: String)
+case class Run(yamlStr: String, testId: Int)
 case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
+case class CommandStdout(str: String)
+case class CommandStderr(str: String)
 case class MetricOutput(m: Any, jobName: String)
-object Finished
+case class Finished(testId: Int)
 
 class TestRunnerActor extends Actor {
   override def receive = {
-    case Run(yamlStr) =>
+    case Run(yamlStr, testId) =>
 
-      Try(parseConfig(yamlStr).map(processConfig)) match {
+      parseConfig(yamlStr) match {
+        case Failure(ex: TestRunnerException) => sender ! ex
         case Failure(ex) => sender ! TestError(ex)
-        case Success(_) => ;
+        case Success(config) =>
+          Try(processConfig(config)) match {
+            case Failure(ex: TestRunnerException) => sender ! ex
+            case Failure(ex) => sender ! TestError(ex)
+            case Success(_) => ;
+          }
       }
 
-      sender ! Finished
+      sender ! Finished(testId)
+      context.stop(self)
   }
 
   private val sourceFormats = Map(
@@ -37,10 +46,10 @@ class TestRunnerActor extends Actor {
 
   private def parseConfig(yamlStr: String): Try[TestsConfiguration] = {
     val config = Try(yamlStr.parseYaml.convertTo[TestsConfiguration]) match {
-      case Failure(e: DeserializationException) => throw BadConfiguration(Seq(e.getMessage))
-      case Failure(e: Throwable) => throw e
-      case Success(null) => throw BadConfiguration(Seq("Could not parse"))
-      case Success(c) if c.jobs.isEmpty => throw BadConfiguration(Seq("Test has no jobs"))
+      case Failure(e: DeserializationException) => return Failure(BadConfiguration(Seq(e.getMessage)))
+      case Failure(e: Throwable) => return Failure(e)
+      case Success(null) => return Failure(BadConfiguration(Seq("Could not parse")))
+      case Success(c) if c.jobs.isEmpty => return Failure(BadConfiguration(Seq("Test has no jobs")))
       case Success(c) => c
     }
 
@@ -61,11 +70,10 @@ class TestRunnerActor extends Actor {
       }
     })
 
-    if (errors.nonEmpty) {
-      throw BadConfiguration(errors.toList)
-    }
-
-    Success(config)
+    if (errors.nonEmpty)
+      Failure(BadConfiguration(errors.toList))
+    else
+      Success(config)
   }
 
   private def processConfig(test: TestsConfiguration): Unit = {
