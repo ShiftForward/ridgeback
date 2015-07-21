@@ -112,10 +112,10 @@
                 "name": "ridgeback"
             },
             "commit": {
-                "hash": "122eff1abdaa",
+                "hash": "d251eb7bb36f",
                 "links": {
                     "self": {
-                        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/commit/122eff1abdaa"
+                        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/commit/d251eb7bb36f"
                     }
                 }
             }
@@ -229,10 +229,10 @@
                 "name": "ridgeback"
             },
             "commit": {
-                "hash": "a322d117ae92",
+                "hash": "d251eb7bb36f",
                 "links": {
                     "self": {
-                        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/commit/a322d117ae92"
+                        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/commit/d251eb7bb36f"
                     }
                 }
             }

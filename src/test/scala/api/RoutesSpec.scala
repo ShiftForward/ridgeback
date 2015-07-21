@@ -4,7 +4,7 @@ import java.net.URLDecoder
 import java.time.ZonedDateTime
 
 import persistence.entities.JsonProtocol._
-import persistence.entities.{ Project, SimpleProject, Test }
+import persistence.entities.{ SimpleProject, Job, Project, Test }
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport._
 
@@ -92,6 +92,8 @@ class RoutesSpec extends AbstractAPITest {
 
     "bitbucket trigger route runs successfully with PRs" in {
       modules.projectsDal.getProjectById(1) returns Future(Some(Project(Some(1), "ridgeback", "git@bitbucket.org:shiftforward/ridgeback.git")))
+      //modules.testsDal.save(Test(None, Some(1), "commit", Some(any[ZonedDateTime]), None)) returns Future(1)
+      //modules.jobsDal.save(any[Job]) returns (Future(1), Future(2), Future(3), Future(4), Future(5))
 
       import spray.json._
       import spray.json.DefaultJsonProtocol._

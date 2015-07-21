@@ -26,11 +26,11 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
       val dirFile = dir.toFile
       FileUtils.forceDeleteOnExit(dirFile)
 
-      Seq("git", "clone", "--quiet", "--depth=1", project.gitRepo, dir.toString).!
+      Process(Seq("git", "clone", project.gitRepo, dir.toString)).!
       Process(Seq("git", "checkout", "-qf", pr.commit), dirFile).!
       val ymlFile = Process(Seq("cat", ".perftests.yml"), dirFile).!!
 
-      self ! Start(ymlFile)
+      self.tell(Start(ymlFile), sender())
 
     case Start(yamlStr) =>
       val replyTo = sender()

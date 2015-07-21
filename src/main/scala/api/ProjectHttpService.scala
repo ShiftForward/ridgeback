@@ -26,7 +26,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   import JsonProtocol._
   import SprayJsonSupport._
 
-  implicit val timeout = Timeout(5.seconds)
+  implicit val timeout = Timeout(15.seconds)
   implicit val ec: ExecutionContext = actorRefFactory.dispatcher
 
   @ApiOperation(httpMethod = "GET", response = classOf[Project], value = "Returns a project based on ID")
@@ -118,7 +118,8 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   @ApiResponses(Array(
     new ApiResponse(code = 202, message = "Accepted"),
     new ApiResponse(code = 204, message = "No Content"),
-    new ApiResponse(code = 404, message = "Not Found")))
+    new ApiResponse(code = 404, message = "Not Found"),
+    new ApiResponse(code = 501, message = "Not Implemented")))
   def ProjectTriggerRouteBB = path("project" / IntNumber / "trigger" / "bb") { (projId) =>
     post {
       entity(as[JsObject]) { json =>
@@ -138,7 +139,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
               case None => complete(NoContent)
             }
           case Some(comment) =>
-            logger.info(s"'$comment' does not match keyword ${modules.config.getString("worker.keyword")}")
+            logger.debug(s"'$comment' does not match keyword ${modules.config.getString("worker.keyword")}")
             complete(NoContent)
           case None => complete(NoContent)
         }
