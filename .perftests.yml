@@ -1,0 +1,11 @@
+jobs:
+  - name: googlehttp
+    source: output
+    format: seconds
+    script:
+      - curl -w %{time_total} -o NUL -s http://www.google.pt
+  - name: googlehttps
+    source: output
+    format: seconds
+    script:
+      - curl -w %{time_total} -o NUL -s https://www.google.pt
