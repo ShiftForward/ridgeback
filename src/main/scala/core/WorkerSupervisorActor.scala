@@ -4,6 +4,7 @@ import java.nio.file.Files
 import java.time.ZonedDateTime
 
 import akka.actor.{ Actor, Props }
+import org.apache.commons.io.FileUtils
 import persistence.entities.{ Job, Project, PullRequestSource, Test }
 import utils.{ Configuration, PersistenceModule }
 
@@ -23,6 +24,7 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
 
       val dir = Files.createTempDirectory("repos")
       val dirFile = dir.toFile
+      FileUtils.forceDeleteOnExit(dirFile)
 
       Seq("git", "clone", "--quiet", "--depth=1", project.gitRepo, dir.toString).!
       Process(Seq("git", "checkout", "-qf", pr.commit), dirFile).!
