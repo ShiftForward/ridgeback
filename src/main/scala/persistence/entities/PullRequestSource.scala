@@ -6,7 +6,7 @@ case class PullRequestSource(
   commit: String,
   pullRequestId: Int)
 
-case class CommitRequestSource(
+case class CommitSource(
   provider: String,
   repoFullName: String,
   commit: String,

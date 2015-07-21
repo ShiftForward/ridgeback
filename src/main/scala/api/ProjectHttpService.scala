@@ -5,6 +5,7 @@ import javax.ws.rs.Path
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import com.typesafe.scalalogging.LazyLogging
 import com.wordnik.swagger.annotations._
 import core.{ CloneRepository, PayloadExtractor, Start, WorkerSupervisorActor }
 import persistence.entities.{ JsonProtocol, _ }
@@ -20,7 +21,7 @@ import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
 @Api(value = "/project", description = "Operations about projects")
-abstract class ProjectHttpService(modules: Configuration with PersistenceModule) extends HttpService {
+abstract class ProjectHttpService(modules: Configuration with PersistenceModule) extends HttpService with LazyLogging {
 
   import JsonProtocol._
   import SprayJsonSupport._
@@ -133,9 +134,12 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
                   case None => complete(NotFound)
                   case ex => complete(InternalServerError, s"An error occurred: $ex")
                 }
-              case Some(Right(commit)) => ???
+              case Some(Right(commit)) => complete(NotImplemented) // FIXME
               case None => complete(NoContent)
             }
+          case Some(comment) =>
+            logger.info(s"'$comment' does not match keyword ${modules.config.getString("worker.keyword")}")
+            complete(NoContent)
           case None => complete(NoContent)
         }
       }

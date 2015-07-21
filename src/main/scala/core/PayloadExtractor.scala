@@ -1,13 +1,13 @@
 package core
 
 import com.typesafe.scalalogging.LazyLogging
-import persistence.entities.{ CommitRequestSource, PullRequestSource }
+import persistence.entities.{ CommitSource, PullRequestSource }
 import spray.json.{ JsNumber, JsString, JsObject }
 import utils.json.Implicits._
 
 trait PayloadExtractor {
   def extractPullRequest(json: JsObject): Option[PullRequestSource]
-  def extractCommit(json: JsObject): Option[CommitRequestSource]
+  def extractCommit(json: JsObject): Option[CommitSource]
   def extractComment(json: JsObject): Option[String]
 }
 
@@ -18,7 +18,7 @@ object PayloadExtractor extends LazyLogging {
     case _ => ???
   }
 
-  def extract(provider: String, json: JsObject): Option[Either[PullRequestSource, CommitRequestSource]] = provider match {
+  def extract(provider: String, json: JsObject): Option[Either[PullRequestSource, CommitSource]] = provider match {
     case "bitbucket" =>
       if (json.getPath[JsString]("pullrequest.type").isDefined)
         BitbucketPayloadExtractor.extractPullRequest(json).map(s => Left(s))
@@ -55,13 +55,24 @@ object BitbucketPayloadExtractor extends PayloadExtractor {
     }
   }
 
-  def extractCommit(json: JsObject): Option[CommitRequestSource] = ???
+  def extractCommit(json: JsObject): Option[CommitSource] = {
+    val commitOpt = json.getPath[JsString]("commit.hash")
+    val branchOpt = Some("")
+    val commentIdOpt = json.getPath[JsNumber]("comment.id")
+    val repoNameOpt = json.getPath[JsString]("repository.full_name")
+
+    (commitOpt, branchOpt, commentIdOpt, repoNameOpt) match {
+      case (Some(commit), Some(branch), Some(commentId), Some(repoName)) =>
+        Some(CommitSource("bitbucket", repoName.value, commit.value, commentId.value.toIntExact))
+      case _ => None
+    }
+  }
 
   def extractComment(json: JsObject): Option[String] = json.getPath[JsString]("comment.content.raw").map(jss => jss.value)
 }
 
 object GithubPayloadExtractor extends PayloadExtractor {
   def extractPullRequest(json: JsObject): Option[PullRequestSource] = ???
-  def extractCommit(json: JsObject): Option[CommitRequestSource] = ???
+  def extractCommit(json: JsObject): Option[CommitSource] = ???
   def extractComment(json: JsObject): Option[String] = json.getPath[JsString]("comment.body").map(jss => jss.value)
 }
