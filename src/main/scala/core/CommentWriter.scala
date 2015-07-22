@@ -1,7 +1,6 @@
 package core
 
-import akka.actor.{ ActorRefFactory, PoisonPill, Actor }
-import akka.util.Timeout
+import akka.actor.{ Actor, ActorRefFactory }
 import com.typesafe.scalalogging.LazyLogging
 import persistence.entities.{ Project, PullRequestSource }
 import spray.client.pipelining._
@@ -14,7 +13,8 @@ import scala.util.{ Failure, Success }
 case class SendComment(proj: Project, testId: Int, prSource: PullRequestSource)
 
 trait CommentWriter {
-  def apply(prSource: PullRequestSource, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory, ec: ExecutionContext): Future[HttpResponse]
+  def apply(prSource: PullRequestSource, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory,
+                                                                              ec: ExecutionContext): Future[HttpResponse]
 }
 
 class CommentWriterActor(modules: Configuration with PersistenceModule, commentWriter: CommentWriter) extends Actor with LazyLogging {
@@ -29,28 +29,24 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
             strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took ${job.duration}\n\n")
           }
 
-          writeComment(prSource, strBuilder.toString())
-          self ! PoisonPill
+          val response = commentWriter(prSource, strBuilder.toString(), modules)
+
+          response onComplete {
+            case Success(res: HttpResponse) =>
+              if (res.status.isSuccess)
+                logger.info(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
+              else
+                logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
+              context.stop(self)
+            case Failure(error) =>
+              logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} failed", error)
+              context.stop(self)
+          }
 
         case Failure(error) =>
           logger.error(s"Failed to get jobs of ${prSource.repoFullName}#${prSource.pullRequestId}", error)
-          self ! PoisonPill
+          context.stop(self)
       }
-  }
-
-  def writeComment(prSource: PullRequestSource, msg: String): Unit = {
-
-    val response = commentWriter(prSource, msg, modules)
-
-    response onComplete {
-      case Success(res: HttpResponse) =>
-        if (res.status.isSuccess)
-          logger.info(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
-        else
-          logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
-      case Failure(error) =>
-        logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} failed", error)
-    }
   }
 }
 

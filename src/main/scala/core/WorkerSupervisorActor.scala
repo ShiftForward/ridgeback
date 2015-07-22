@@ -16,7 +16,7 @@ import scala.util.{ Failure, Success }
 case class CloneRepository(pr: PullRequestSource)
 case class Start(yamlStr: String)
 
-class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project) extends Actor {
+class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project, prSource: Option[PullRequestSource]) extends Actor {
   import context._
 
   def receive: Receive = {
@@ -58,7 +58,11 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
     case Finished =>
       println(s"Finished $testId")
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
-      context.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter)))
+      prSource.foreach(pr => {
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter)))
+        actor ! SendComment(project, testId, pr)
+      })
+
       context.stop(self)
     case BadConfiguration(errs) => println("BadConfiguration: " + errs)
     case _ => println("Unknown")

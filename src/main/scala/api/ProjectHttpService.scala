@@ -95,7 +95,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
       entity(as[String]) { yamlStr =>
         onComplete(modules.projectsDal.getProjectById(projId)) {
           case Success(Some(proj)) =>
-            val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj)))
+            val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, None)))
             onComplete(actor ? Start(yamlStr)) {
               case Success(testId: Int) => complete(Accepted, testId.toString)
               case Success(ex) => complete(InternalServerError, s"Could not create test: $ex")
@@ -129,7 +129,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
               case Some(Left(pr)) =>
                 onSuccess(modules.projectsDal.getProjectById(projId)) {
                   case Some(proj) =>
-                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj)))
+                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, Some(pr))))
                     actor ! CloneRepository(pr)
                     complete(Accepted)
                   case None => complete(NotFound)
