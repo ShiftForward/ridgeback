@@ -17,7 +17,7 @@ trait ProjectsDal {
 class ProjectsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit val profile: JdbcProfile) extends ProjectsDal with DbModule with Projects with LazyLogging {
   import profile.api._
 
-  override def save(proj: Project): Future[Int] = db.run(projects += proj)
+  override def save(proj: Project): Future[Int] = db.run((projects returning projects.map(_.id)) += proj)
 
   override def getProjects(): Future[Seq[Project]] = db.run(projects.result)
 

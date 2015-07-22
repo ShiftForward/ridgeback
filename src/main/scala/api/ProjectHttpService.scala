@@ -68,8 +68,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
       entity(as[SimpleProject]) {
         projectToInsert =>
           onComplete(modules.projectsDal.save(Project(None, projectToInsert.name, projectToInsert.gitRepo))) {
-            // ignoring the number of insertedEntities because in this case it should always be one, you might check this in other cases
-            case Success(insertedEntities) => complete(StatusCodes.Created)
+            case Success(projId) => complete(StatusCodes.Created)
             case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
       }
