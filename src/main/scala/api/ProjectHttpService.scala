@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
-@Api(value = "/project", description = "Operations about projects")
+@Api(value = "/projects", description = "Operations about projects")
 abstract class ProjectHttpService(modules: Configuration with PersistenceModule) extends HttpService {
 
   import JsonProtocol._
@@ -33,7 +33,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Ok"),
     new ApiResponse(code = 404, message = "Not Found")))
-  def ProjectGetRoute = path("project" / IntNumber) { (projId) =>
+  def ProjectGetRoute = path("projects" / IntNumber) { (projId) =>
     get {
       respondWithMediaType(`application/json`) {
         onComplete(modules.projectsDal.getProjectById(projId)) {
@@ -46,7 +46,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
 
   @ApiOperation(httpMethod = "GET", response = classOf[Seq[Project]], value = "Returns all projects")
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
-  def ProjectsGetRoute = path("project") {
+  def ProjectsGetRoute = path("projects") {
     get {
       respondWithMediaType(`application/json`) {
         onComplete(modules.projectsDal.getProjects()) {
@@ -63,7 +63,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   @ApiResponses(Array(
     new ApiResponse(code = 400, message = "Bad Request"),
     new ApiResponse(code = 201, message = "Entity Created")))
-  def ProjectPostRoute = path("project") {
+  def ProjectPostRoute = path("projects") {
     post {
       entity(as[SimpleProject]) {
         projectToInsert =>
@@ -84,7 +84,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Ok"),
     new ApiResponse(code = 404, message = "Not Found")))
-  def ProjectTriggerRoute = path("project" / IntNumber / "trigger") { (projId) =>
+  def ProjectTriggerRoute = path("projects" / IntNumber / "trigger") { (projId) =>
     post {
       entity(as[String]) { yamlStr =>
         onComplete(modules.projectsDal.getProjectById(projId)) {
