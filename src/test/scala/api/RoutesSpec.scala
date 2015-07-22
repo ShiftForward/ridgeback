@@ -4,7 +4,7 @@ import java.net.URLDecoder
 import java.time.ZonedDateTime
 
 import persistence.entities.JsonProtocol._
-import persistence.entities.{ SimpleProject, Job, Project, Test }
+import persistence.entities.{ SimpleProject, Project, Test }
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport._
 

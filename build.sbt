@@ -47,7 +47,8 @@ lazy val ridgeback = (project in file(".")).
         "org.specs2"          %%  "specs2-mock"    % specs2V % "test",
         "org.xerial"          %   "sqlite-jdbc"    % "3.8.10.1",
         "ch.qos.logback"      %   "logback-classic" % "1.1.3",
-        "org.apache.commons"  %   "commons-io"     % "1.3.2"
+        "org.apache.commons"  %   "commons-io"     % "1.3.2",
+        "com.pusher"          %   "pusher-http-java" % "0.9.3"
       )
     }
   )

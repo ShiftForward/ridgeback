@@ -16,7 +16,8 @@ import scala.util.{ Failure, Success }
 case class CloneRepository(pr: PullRequestPayload)
 case class Start(yamlStr: String)
 
-class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project, prSource: Option[PullRequestPayload]) extends Actor {
+class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project,
+                            prSource: Option[PullRequestPayload]) extends Actor {
   import context._
 
   def receive: Receive = {
@@ -45,26 +46,27 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
       }
   }
 
+  lazy val pusher = new PusherService(modules, project.name)
+
   def running(testId: Int): Receive = {
-    case TestError(ex) => println("TestError: " + ex)
-    case CommandExecuted(cmd) => println("CommandExecuted: " + cmd)
-    case CommandFailed(cmd, exitCode, jobName) => println("CommandFailed: " + cmd + " - " + exitCode + " - " + jobName)
-    case CommandStdout(str) => println("CommandStdout: " + str)
-    case CommandStderr(str) => println("CommandStderr: " + str)
+    case TestError(ex) => pusher.send(testId, EventType.TestError, ex.getMessage)
+    case CommandExecuted(cmd) => pusher.send(testId, EventType.CmdExecuted, cmd)
+    case CommandFailed(cmd, exitCode, jobName) => pusher.send(testId, EventType.CmdFailed, s"$cmd ($exitCode)")
+    case CommandStdout(str) => pusher.send(testId, EventType.Stdout, str)
+    case CommandStderr(str) => pusher.send(testId, EventType.Stderr, str)
     case MetricOutput(duration, jobName, source) =>
-      println("MetricOutput: " + duration + " - " + jobName)
+      pusher.send(testId, EventType.Metric, duration.toString)
       Await.result(modules.jobsDal.save(Job(None, project.id, Some(testId), jobName, source, duration)), 5.seconds)
-    case InvalidOutput(cmd, jobName) => println("InvalidOutput: " + cmd + " - " + jobName)
+    case InvalidOutput(cmd, jobName) => pusher.send(testId, EventType.InvalidOutput, cmd)
     case Finished =>
-      println(s"Finished $testId")
+      pusher.send(testId, EventType.Finished, "")
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
       prSource.foreach(pr => {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter)))
         actor ! SendComment(project, testId, pr)
       })
-
       context.stop(self)
-    case BadConfiguration(errs) => println("BadConfiguration: " + errs)
+    case BadConfiguration(errs) => pusher.send(testId, EventType.BadConfiguration, errs.mkString("\n"))
     case _ => println("Unknown")
   }
 }
