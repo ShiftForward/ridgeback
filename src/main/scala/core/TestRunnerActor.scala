@@ -19,7 +19,7 @@ case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
 case class MetricOutput(duration: Duration, jobName: String, source: String)
-object Finished
+case object Finished
 
 class TestRunnerActor extends Actor {
   def receive = {
