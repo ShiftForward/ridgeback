@@ -27,7 +27,7 @@ class RoutesSpec extends AbstractAPITest {
     "return 404" in {
       modules.projectsDal.getProjectById(1) returns Future(None)
 
-      Get("/project/1") ~> projects.ProjectGetRoute ~> check {
+      Get("/projects/1") ~> projects.ProjectGetRoute ~> check {
         handled must beTrue
         status mustEqual NotFound
       }
@@ -35,7 +35,7 @@ class RoutesSpec extends AbstractAPITest {
 
     "return 1 project" in {
       modules.projectsDal.getProjectById(1) returns Future(Some(Project(Some(1), "name 1", "url 1")))
-      Get("/project/1") ~> projects.ProjectGetRoute ~> check {
+      Get("/projects/1") ~> projects.ProjectGetRoute ~> check {
         handled must beTrue
         status mustEqual OK
         responseAs[Option[Project]].isDefined
@@ -44,7 +44,7 @@ class RoutesSpec extends AbstractAPITest {
 
     "return an array with 2 projects" in {
       modules.projectsDal.getProjects() returns Future(Vector(Project(Some(1), "name 1", "url 1"), Project(Some(2), "name 2", "url 2")))
-      Get("/project") ~> projects.ProjectsGetRoute ~> check {
+      Get("/projects") ~> projects.ProjectsGetRoute ~> check {
         handled must beTrue
         status mustEqual OK
         responseAs[Seq[Project]].length == 2
@@ -53,27 +53,27 @@ class RoutesSpec extends AbstractAPITest {
 
     "create a project with the json in post" in {
       modules.projectsDal.save(Project(None, "name 1", "url 1")) returns Future(1)
-      Post("/project", SimpleProject("name 1", "url 1")) ~> projects.ProjectPostRoute ~> check {
+      Post("/projects", SimpleProject("name 1", "url 1")) ~> projects.ProjectPostRoute ~> check {
         handled must beTrue
         status mustEqual Created
       }
     }
 
     "not handle the invalid json" in {
-      Post("/project", "{\"name\":\"1\"}") ~> projects.ProjectPostRoute ~> check {
+      Post("/projects", "{\"name\":\"1\"}") ~> projects.ProjectPostRoute ~> check {
         handled must beFalse
       }
     }
 
     "not handle an empty post" in {
-      Post("/project") ~> projects.ProjectPostRoute ~> check {
+      Post("/projects") ~> projects.ProjectPostRoute ~> check {
         handled must beFalse
       }
     }
 
     "trigger route returns 404" in {
       modules.projectsDal.getProjectById(99) returns Future(None)
-      Post("/project/99/trigger") ~> projects.ProjectTriggerRoute ~> check {
+      Post("/projects/99/trigger") ~> projects.ProjectTriggerRoute ~> check {
         handled must beTrue
         status mustEqual NotFound
       }
@@ -83,7 +83,7 @@ class RoutesSpec extends AbstractAPITest {
       modules.projectsDal.getProjectById(2) returns Future(Some(Project(Some(2), "name 1", "url 1")))
       modules.testsDal.save(Test(None, Some(2), "commit", Some(any[ZonedDateTime]), None)) returns Future(3)
 
-      Post("/project/2/trigger") ~> projects.ProjectTriggerRoute ~> check {
+      Post("/projects/2/trigger") ~> projects.ProjectTriggerRoute ~> check {
         handled must beTrue
         status mustEqual Accepted
         responseAs[String] mustEqual "3"
