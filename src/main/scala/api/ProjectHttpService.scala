@@ -20,7 +20,7 @@ import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
 @Api(value = "/projects", description = "Operations about projects")
-abstract class ProjectHttpService(modules: Configuration with PersistenceModule) extends HttpService with LazyLogging {
+abstract class ProjectHttpService(modules: Configuration with PersistenceModule with EventPublisherModule) extends HttpService with LazyLogging {
 
   import JsonProtocol._
   import SprayJsonSupport._

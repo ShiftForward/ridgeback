@@ -3,6 +3,7 @@ package api
 import java.net.URLDecoder
 import java.time.ZonedDateTime
 
+import core.ConsoleEventPublisher
 import persistence.entities.JsonProtocol._
 import persistence.entities.{ SimpleProject, Project, Test }
 import spray.http.StatusCodes._
@@ -16,7 +17,7 @@ class RoutesSpec extends AbstractAPISpec {
 
   def actorRefFactory = system
 
-  val modules = new Modules {}
+  val modules = new Modules with ConsoleEventPublisher {}
 
   val projects = new ProjectHttpService(modules) {
     override def actorRefFactory = system
