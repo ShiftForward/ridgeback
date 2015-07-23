@@ -24,7 +24,7 @@ trait PusherEventPublisher extends EventPublisherModule {
   }
 }
 
-trait ConsoleEventPublisher extends EventPublisherModule with LazyLogging {
+trait ConsoleEventPublisher extends EventPublisherModule {
   this: LazyLogging =>
   override def publish(projName: String, testId: Int, event: EventType.EventType, msg: String) = {
     logger.info(s"[$projName-$testId] - $event: $msg")

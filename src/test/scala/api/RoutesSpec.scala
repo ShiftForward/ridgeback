@@ -17,7 +17,7 @@ class RoutesSpec extends AbstractAPISpec {
 
   def actorRefFactory = system
 
-  val modules = new Modules with ConsoleEventPublisher {}
+  val modules = new Modules {}
 
   val projects = new ProjectHttpService(modules) {
     override def actorRefFactory = system
