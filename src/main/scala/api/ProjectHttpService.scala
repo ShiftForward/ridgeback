@@ -7,12 +7,11 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
 import com.wordnik.swagger.annotations._
-import core.{ CloneRepository, PayloadExtractor, Start, WorkerSupervisorActor }
-import persistence.entities.{ JsonProtocol, _ }
+import core.{ CloneRepository, Start, WorkerSupervisorActor }
+import persistence.entities._
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport
-import spray.json.JsObject
 import spray.routing._
 import utils._
 
@@ -120,29 +119,24 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule)
     new ApiResponse(code = 204, message = "No Content"),
     new ApiResponse(code = 404, message = "Not Found"),
     new ApiResponse(code = 501, message = "Not Implemented")))
-  def ProjectTriggerRouteBB = path("project" / IntNumber / "trigger" / "bb") { (projId) =>
+  def ProjectTriggerRouteBB = path("project" / IntNumber / "trigger" / "bb") { projId =>
+    import core.PayloadJsonProtocol._
     post {
-      entity(as[JsObject]) { json =>
-        PayloadExtractor.extractComment("bitbucket", json) match {
-          case Some(comment) if comment.contains(modules.config.getString("worker.keyword")) =>
-            PayloadExtractor.extract("bitbucket", json) match {
-              case Some(Left(pr)) =>
-                onSuccess(modules.projectsDal.getProjectById(projId)) {
-                  case Some(proj) =>
-                    val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, Some(pr))))
-                    actor ! CloneRepository(pr)
-                    complete(Accepted)
-                  case None => complete(NotFound)
-                  case ex => complete(InternalServerError, s"An error occurred: $ex")
-                }
-              case Some(Right(commit)) => complete(NotImplemented) // FIXME
-              case None => complete(NoContent)
-            }
-          case Some(comment) =>
-            logger.debug(s"'$comment' does not match keyword ${modules.config.getString("worker.keyword")}")
-            complete(NoContent)
-          case None => complete(NoContent)
-        }
+      entity(as[Payload]) {
+        case pr: PullRequestPayload if pr.comment.contains(modules.config.getString("worker.keyword")) =>
+          onSuccess(modules.projectsDal.getProjectById(projId)) {
+            case Some(proj) =>
+              val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, Some(pr))))
+              actor ! CloneRepository(pr)
+              complete(Accepted)
+            case None => complete(NotFound)
+            case ex => complete(InternalServerError, s"An error occurred: $ex")
+          }
+        case commit: CommitPayload if commit.comment.contains(modules.config.getString("worker.keyword")) =>
+          complete(NotImplemented)
+        case payload =>
+          logger.debug(s"'${payload.comment}' does not match keyword ${modules.config.getString("worker.keyword")}")
+          complete(NoContent)
       }
     }
   }

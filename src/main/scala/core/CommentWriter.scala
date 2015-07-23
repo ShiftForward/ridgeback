@@ -2,7 +2,7 @@ package core
 
 import akka.actor.{ Actor, ActorRefFactory }
 import com.typesafe.scalalogging.LazyLogging
-import persistence.entities.{ Project, PullRequestSource }
+import persistence.entities.{ Project, PullRequestPayload }
 import spray.client.pipelining._
 import spray.http.{ BasicHttpCredentials, HttpRequest, _ }
 import utils.{ Configuration, PersistenceModule }
@@ -10,11 +10,11 @@ import utils.{ Configuration, PersistenceModule }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
-case class SendComment(proj: Project, testId: Int, prSource: PullRequestSource)
+case class SendComment(proj: Project, testId: Int, prSource: PullRequestPayload)
 
 trait CommentWriter {
-  def apply(prSource: PullRequestSource, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory,
-                                                                              ec: ExecutionContext): Future[HttpResponse]
+  def apply(prSource: PullRequestPayload, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory,
+                                                                               ec: ExecutionContext): Future[HttpResponse]
 }
 
 class CommentWriterActor(modules: Configuration with PersistenceModule, commentWriter: CommentWriter) extends Actor with LazyLogging {
@@ -51,7 +51,7 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
 }
 
 object BitbucketCommentWriter extends CommentWriter {
-  def apply(prSource: PullRequestSource, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory, ec: ExecutionContext): Future[HttpResponse] = {
+  def apply(prSource: PullRequestPayload, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory, ec: ExecutionContext): Future[HttpResponse] = {
     val url = s"https://bitbucket.org/api/1.0/repositories/${prSource.repoFullName}/pullrequests/${prSource.pullRequestId}/comments"
 
     val pipeline: HttpRequest => Future[HttpResponse] = (

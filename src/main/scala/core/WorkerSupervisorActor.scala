@@ -5,7 +5,7 @@ import java.time.ZonedDateTime
 
 import akka.actor.{ Actor, Props }
 import org.apache.commons.io.FileUtils
-import persistence.entities.{ Job, Project, PullRequestSource, Test }
+import persistence.entities._
 import utils.{ Configuration, PersistenceModule }
 
 import scala.concurrent.Await
@@ -13,10 +13,10 @@ import scala.concurrent.duration._
 import scala.sys.process._
 import scala.util.{ Failure, Success }
 
-case class CloneRepository(pr: PullRequestSource)
+case class CloneRepository(pr: PullRequestPayload)
 case class Start(yamlStr: String)
 
-class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project, prSource: Option[PullRequestSource]) extends Actor {
+class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project, prSource: Option[PullRequestPayload]) extends Actor {
   import context._
 
   def receive: Receive = {
