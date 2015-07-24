@@ -43,9 +43,19 @@ class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
     }
 
     "return 2 jobs after inserting another one" in {
-      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", "format", 1.0)) must beEqualTo(1).await
+      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", "format", 1.0)) must beEqualTo(2).await
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](2).await
       modules.jobsDal.getJobsByTestId(1) must haveSize[Seq[Job]](2).await
+    }
+
+    "getJobsByTestId filters properly" in {
+      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.1", "source", "format", 1.0)) must beEqualTo(3).await
+      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.2", "source", "format", 1.0)) must beEqualTo(4).await
+      modules.jobsDal.save(Job(None, Some(1), Some(3), "name3.1", "source", "format", 1.0)) must beEqualTo(5).await
+
+      modules.jobsDal.getJobsByTestId(2) must haveSize[Seq[Job]](2).await
+      modules.jobsDal.getJobsByTestId(3) must haveSize[Seq[Job]](1).await
+      modules.jobsDal.getJobsByTestId(4) must haveSize[Seq[Job]](0).await
     }
 
   }

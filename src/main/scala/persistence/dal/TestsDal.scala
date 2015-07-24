@@ -22,7 +22,7 @@ trait TestsDal {
 class TestsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit val profile: JdbcProfile) extends TestsDal with DbModule with Tests with LazyLogging {
   import profile.api._
 
-  override def save(test: Test): Future[Int] = db.run(tests += test)
+  override def save(test: Test): Future[Int] = db.run((tests returning tests.map(_.id)) += test)
 
   override def getTests(): Future[Seq[Test]] = db.run(tests.result)
 
