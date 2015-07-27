@@ -18,7 +18,7 @@ trait JobsDal {
 class JobsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit val profile: JdbcProfile) extends JobsDal with DbModule with Jobs with LazyLogging {
   import profile.api._
 
-  override def save(job: Job): Future[Int] = db.run(jobs += job)
+  override def save(job: Job): Future[Int] = db.run((jobs returning jobs.map(_.id)) += job)
 
   override def getJobs(): Future[Seq[Job]] = db.run(jobs.result)
 

@@ -34,7 +34,7 @@ class ProjectsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll wit
     }
 
     "return 2 projects after inserting another one" in {
-      modules.projectsDal.save(Project(None, "projName", "gitRepo2")) must beEqualTo(1).await
+      modules.projectsDal.save(Project(None, "projName", "gitRepo")) must beEqualTo(2).await
       modules.projectsDal.getProjects() must haveSize[Seq[Project]](2).await
     }
 

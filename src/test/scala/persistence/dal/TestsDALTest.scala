@@ -42,11 +42,15 @@ class TestsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll with N
     }
 
     "return 2 tests after inserting another one" in {
-      modules.testsDal.save(Test(None, Some(2), "commit", None, None)) must beEqualTo(1).await
+      modules.testsDal.save(Test(None, Some(2), "commit", None, None)) must beEqualTo(2).await
       modules.testsDal.getTests() must haveSize[Seq[Test]](2).await
       modules.testsDal.getTestsByProjId(1) must haveSize[Seq[Test]](1).await
     }
 
+    "save returns the new id" in {
+      modules.testsDal.save(Test(None, Some(2), "commit", None, None)) must beEqualTo(3).await
+      modules.testsDal.save(Test(None, Some(2), "commit", None, None)) must beEqualTo(4).await
+    }
   }
 
   override def afterAll() = {
