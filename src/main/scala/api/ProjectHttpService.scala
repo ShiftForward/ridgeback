@@ -7,7 +7,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
 import com.wordnik.swagger.annotations._
-import core.{ CloneRepository, Start, WorkerSupervisorActor }
+import core.{EventPublisherModule, CloneRepository, Start, WorkerSupervisorActor}
 import persistence.entities._
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
