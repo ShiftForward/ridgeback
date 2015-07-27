@@ -1,35 +1,34 @@
 package core
 
-import persistence.entities.{ CommitPayload, PullRequestPayload, Payload }
-import spray.json.{ JsNumber, JsString }
-import utils.json.Implicits._
-
+import persistence.entities.{ CommitPayload, Payload, PullRequestPayload }
+import spray.json.lenses.JsonLenses._
 import spray.json.{ DefaultJsonProtocol, _ }
 
 object PayloadJsonProtocol extends DefaultJsonProtocol {
   implicit object BitbucketPayloadJsonReader extends RootJsonReader[Payload] {
     def read(json: JsValue): Payload = {
-      if (json.getPath[JsString]("pullrequest.type").isDefined) {
-        val commitOpt = json.getPath[JsString]("pullrequest.source.commit.hash").map(_.value)
-        val branchOpt = json.getPath[JsString]("pullrequest.source.branch.name").map(_.value)
-        val prIdOpt = json.getPath[JsNumber]("comment.pullrequest.id").map(_.value)
-        val repoNameOpt = json.getPath[JsString]("repository.full_name").map(_.value)
-        val commentOpt = json.getPath[JsString]("comment.content.raw").map(_.value)
+
+      if (json.extract[Option[String]]('pullrequest.? / 'type).isDefined) {
+        val commitOpt = json.extract[Option[String]]('pullrequest / 'source / 'commit / 'hash)
+        val branchOpt = json.extract[Option[String]]('pullrequest / 'source / 'branch / 'name)
+        val prIdOpt = json.extract[Option[Int]]('comment / 'pullrequest / 'id)
+        val repoNameOpt = json.extract[Option[String]]('repository / 'full_name)
+        val commentOpt = json.extract[Option[String]]('comment / 'content / 'raw)
 
         (commitOpt, branchOpt, prIdOpt, repoNameOpt, commentOpt) match {
           case (Some(commit), Some(branch), Some(prId), Some(repoName), Some(comment)) =>
-            PullRequestPayload(comment, "bitbucket", repoName, commit, prId.toIntExact)
+            PullRequestPayload(comment, "bitbucket", repoName, commit, prId)
           case _ => deserializationError(s"Could not extract PR fields from the PR Bitbucket payload: ${json.toString()}")
         }
-      } else if (json.getPath[JsString]("commit.type").isDefined) {
-        val commitOpt = json.getPath[JsString]("commit.hash").map(_.value)
-        val commentIdOpt = json.getPath[JsNumber]("comment.id").map(_.value)
-        val repoNameOpt = json.getPath[JsString]("repository.full_name").map(_.value)
-        val commentOpt = json.getPath[JsString]("comment.content.raw").map(_.value)
+      } else if (json.extract[Option[String]]('commit.? / 'type).isDefined) {
+        val commitOpt = json.extract[Option[String]]('commit / 'hash)
+        val commentIdOpt = json.extract[Option[Int]]('comment / 'id)
+        val repoNameOpt = json.extract[Option[String]]('repository / 'full_name)
+        val commentOpt = json.extract[Option[String]]('comment / 'content / 'raw)
 
         (commitOpt, commentIdOpt, repoNameOpt, commentOpt) match {
           case (Some(commit), Some(commentId), Some(repoName), Some(comment)) =>
-            CommitPayload(comment, "bitbucket", repoName, commit, commentId.toIntExact)
+            CommitPayload(comment, "bitbucket", repoName, commit, commentId)
           case _ => deserializationError(s"Could not extract commit fields from the commit Bitbucket payload: ${json.toString()}")
         }
       } else {
