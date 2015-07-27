@@ -1,0 +1,300 @@
+{
+    "actor": {
+        "type": "user",
+        "username": "dduarte",
+        "display_name": "Duarte Duarte",
+        "uuid": "{9562387b-47f7-4455-83b8-c2a6c048d3f7}",
+        "links": {
+            "avatar": {
+                "href": "https://bitbucket.org/account/dduarte/avatar/32/"
+            },
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/users/dduarte"
+            },
+            "html": {
+                "href": "https://bitbucket.org/dduarte"
+            }
+        }
+    },
+    "repository": {
+        "type": "repository",
+        "name": "ridgeback",
+        "owner": {
+            "type": "team",
+            "username": "shiftforward",
+            "display_name": "ShiftForward",
+            "uuid": "{5254f327-af36-4664-8636-a8a5f2af2f0d}",
+            "links": {
+                "avatar": {
+                    "href": "https://bitbucket.org/account/shiftforward/avatar/32/"
+                },
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/teams/shiftforward"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/shiftforward"
+                }
+            }
+        },
+        "full_name": "shiftforward/ridgeback",
+        "uuid": "{f5428599-f9c8-4680-b7dc-4e43d09de30c}",
+        "links": {
+            "avatar": {
+                "href": "https://bitbucket.org/shiftforward/ridgeback/avatar/16/"
+            },
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback"
+            },
+            "html": {
+                "href": "https://bitbucket.org/shiftforward/ridgeback"
+            }
+        }
+    },
+    "pullrequest": {
+        "type": "pullrequest",
+        "state": "OPEN",
+        "title": "Store tests in DB",
+        "reviewers": [
+            {
+                "type": "user",
+                "username": "ruippeixotog",
+                "display_name": "Rui Gonçalves",
+                "uuid": "{8dc6dd3b-c5a6-4afc-842d-1ca684d9da1e}",
+                "links": {
+                    "avatar": {
+                        "href": "https://bitbucket.org/account/ruippeixotog/avatar/32/"
+                    },
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/users/ruippeixotog"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/ruippeixotog"
+                    }
+                }
+            },
+            {
+                "type": "user",
+                "username": "jcazevedo",
+                "display_name": "Joao Azevedo",
+                "uuid": "{c3bc4afb-05be-4a8a-9673-212bb30fc871}",
+                "links": {
+                    "avatar": {
+                        "href": "https://bitbucket.org/account/jcazevedo/avatar/32/"
+                    },
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/users/jcazevedo"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/jcazevedo"
+                    }
+                }
+            }
+        ],
+        "destination": {
+            "branch": {
+                "name": "master"
+            },
+            "repository": {
+                "type": "repository",
+                "full_name": "shiftforward/ridgeback",
+                "links": {
+                    "avatar": {
+                        "href": "https://bitbucket.org/shiftforward/ridgeback/avatar/16/"
+                    },
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/shiftforward/ridgeback"
+                    }
+                },
+                "uuid": "{f5428599-f9c8-4680-b7dc-4e43d09de30c}",
+                "name": "ridgeback"
+            },
+            "commit": {
+                "hash": "d251eb7bb36f",
+                "links": {
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/commit/d251eb7bb36f"
+                    }
+                }
+            }
+        },
+        "id": 10,
+        "description": "- Add tables to store jobs\r\n\r\n- Create a WorkerSupervisor actor that manages the TestRunner, including handling its output\r\n\r\n- On build trigger create a test on the DB\r\n\r\n- When the script finishes running save the end date on the DB\r\n",
+        "reason": "",
+        "closed_by": null,
+        "participants": [
+            {
+                "approved": false,
+                "role": "REVIEWER",
+                "user": {
+                    "type": "user",
+                    "username": "jcazevedo",
+                    "display_name": "Joao Azevedo",
+                    "uuid": "{c3bc4afb-05be-4a8a-9673-212bb30fc871}",
+                    "links": {
+                        "avatar": {
+                            "href": "https://bitbucket.org/account/jcazevedo/avatar/32/"
+                        },
+                        "self": {
+                            "href": "https://api.bitbucket.org/2.0/users/jcazevedo"
+                        },
+                        "html": {
+                            "href": "https://bitbucket.org/jcazevedo"
+                        }
+                    }
+                }
+            },
+            {
+                "approved": false,
+                "role": "PARTICIPANT",
+                "user": {
+                    "type": "user",
+                    "username": "dduarte",
+                    "display_name": "Duarte Duarte",
+                    "uuid": "{9562387b-47f7-4455-83b8-c2a6c048d3f7}",
+                    "links": {
+                        "avatar": {
+                            "href": "https://bitbucket.org/account/dduarte/avatar/32/"
+                        },
+                        "self": {
+                            "href": "https://api.bitbucket.org/2.0/users/dduarte"
+                        },
+                        "html": {
+                            "href": "https://bitbucket.org/dduarte"
+                        }
+                    }
+                }
+            },
+            {
+                "approved": false,
+                "role": "REVIEWER",
+                "user": {
+                    "type": "user",
+                    "username": "ruippeixotog",
+                    "display_name": "Rui Gonçalves",
+                    "uuid": "{8dc6dd3b-c5a6-4afc-842d-1ca684d9da1e}",
+                    "links": {
+                        "avatar": {
+                            "href": "https://bitbucket.org/account/ruippeixotog/avatar/32/"
+                        },
+                        "self": {
+                            "href": "https://api.bitbucket.org/2.0/users/ruippeixotog"
+                        },
+                        "html": {
+                            "href": "https://bitbucket.org/ruippeixotog"
+                        }
+                    }
+                }
+            }
+        ],
+        "merge_commit": null,
+        "author": {
+            "type": "user",
+            "username": "dduarte",
+            "display_name": "Duarte Duarte",
+            "uuid": "{9562387b-47f7-4455-83b8-c2a6c048d3f7}",
+            "links": {
+                "avatar": {
+                    "href": "https://bitbucket.org/account/dduarte/avatar/32/"
+                },
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/users/dduarte"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/dduarte"
+                }
+            }
+        },
+        "source": {
+            "branch": {
+                "name": "store_tests"
+            },
+            "repository": {
+                "type": "repository",
+                "full_name": "shiftforward/ridgeback",
+                "links": {
+                    "avatar": {
+                        "href": "https://bitbucket.org/shiftforward/ridgeback/avatar/16/"
+                    },
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/shiftforward/ridgeback"
+                    }
+                },
+                "uuid": "{f5428599-f9c8-4680-b7dc-4e43d09de30c}",
+                "name": "ridgeback"
+            },
+            "commit": {
+                "hash": "d251eb7bb36f",
+                "links": {
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/commit/d251eb7bb36f"
+                    }
+                }
+            }
+        },
+        "close_source_branch": true,
+        "created_on": "2015-07-13T11:30:04.468096+00:00",
+        "updated_on": "2015-07-16T10:29:44.239903+00:00",
+        "links": {
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/pullrequests/10"
+            },
+            "html": {
+                "href": "https://bitbucket.org/shiftforward/ridgeback/pull-request/10"
+            }
+        }
+    },
+    "comment": {
+        "pullrequest": {
+            "type": "pullrequest",
+            "id": 10,
+            "title": "Store tests in DB",
+            "links": {
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/pullrequests/10"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/shiftforward/ridgeback/pull-request/10"
+                }
+            }
+        },
+        "content": {
+            "raw": "REPLACEME",
+            "markup": "markdown",
+            "html": "<p>Test hook 2</p>"
+        },
+        "id": 8304331,
+        "updated_on": "2015-07-16T10:29:44.236657+00:00",
+        "links": {
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/pullrequests/10/comments/8304331"
+            },
+            "html": {
+                "href": "https://bitbucket.org/shiftforward/ridgeback/pull-request/10/_/diff#comment-8304331"
+            }
+        },
+        "created_on": "2015-07-16T10:29:44.234550+00:00",
+        "user": {
+            "type": "user",
+            "username": "dduarte",
+            "display_name": "Duarte Duarte",
+            "uuid": "{9562387b-47f7-4455-83b8-c2a6c048d3f7}",
+            "links": {
+                "avatar": {
+                    "href": "https://bitbucket.org/account/dduarte/avatar/32/"
+                },
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/users/dduarte"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/dduarte"
+                }
+            }
+        }
+    }
+}

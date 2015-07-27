@@ -1,11 +1,13 @@
 package persistence.entities
 
 import java.time.format.DateTimeFormatter
-import java.time.{ ZonedDateTime, LocalDateTime }
+import java.time.{ ZonedDateTime }
 
 import spray.json.DefaultJsonProtocol
 
 import spray.json._
+
+import scala.concurrent.duration._
 
 object JsonProtocol extends DefaultJsonProtocol {
   implicit object ZonedDateTimeJsonFormat extends JsonFormat[ZonedDateTime] {
@@ -16,10 +18,18 @@ object JsonProtocol extends DefaultJsonProtocol {
     }
   }
 
+  implicit object DurationJsonFormat extends JsonFormat[Duration] {
+    def write(x: Duration) = JsNumber(x.toMillis)
+    def read(value: JsValue) = value match {
+      case JsNumber(x) => Duration(x.toLongExact, MILLISECONDS)
+      case x => deserializationError("Expected Long as JsNumber, but got " + x)
+    }
+  }
+
   implicit val projectFormat = jsonFormat3(Project)
   implicit val testFormat = jsonFormat5(Test)
-  implicit val jobFormat = jsonFormat7(Job)
+  implicit val jobFormat = jsonFormat6(Job)
   implicit val simpleProjectFormat = jsonFormat2(SimpleProject)
   implicit val simpleTestFormat = jsonFormat2(SimpleTest)
-  implicit val simpleJobFormat = jsonFormat6(SimpleJob)
+  implicit val simpleJobFormat = jsonFormat5(SimpleJob)
 }

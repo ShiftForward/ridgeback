@@ -1,0 +1,106 @@
+{
+  "actor": {
+    "uuid": "{9562387b-47f7-4455-83b8-c2a6c048d3f7}",
+    "display_name": "Duarte Duarte",
+    "type": "user",
+    "links": {
+      "html": {
+        "href": "https://bitbucket.org/dduarte"
+      },
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/users/dduarte"
+      },
+      "avatar": {
+        "href": "https://bitbucket.org/account/dduarte/avatar/32/"
+      }
+    },
+    "username": "dduarte"
+  },
+  "commit": {
+    "type": "commit",
+    "message": "Fix build after merge\n",
+    "links": {},
+    "hash": "f544ddeab2c44a571a9a09f836b8b8edda102ecf"
+  },
+  "repository": {
+    "type": "repository",
+    "name": "ridgeback",
+    "uuid": "{f5428599-f9c8-4680-b7dc-4e43d09de30c}",
+    "full_name": "shiftforward/ridgeback",
+    "owner": {
+      "uuid": "{5254f327-af36-4664-8636-a8a5f2af2f0d}",
+      "display_name": "ShiftForward",
+      "type": "team",
+      "links": {
+        "html": {
+          "href": "https://bitbucket.org/shiftforward"
+        },
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/teams/shiftforward"
+        },
+        "avatar": {
+          "href": "https://bitbucket.org/account/shiftforward/avatar/32/"
+        }
+      },
+      "username": "shiftforward"
+    },
+    "links": {
+      "html": {
+        "href": "https://bitbucket.org/shiftforward/ridgeback"
+      },
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback"
+      },
+      "avatar": {
+        "href": "https://bitbucket.org/shiftforward/ridgeback/avatar/16/"
+      }
+    }
+  },
+  "comment": {
+    "user": {
+      "uuid": "{9562387b-47f7-4455-83b8-c2a6c048d3f7}",
+      "display_name": "Duarte Duarte",
+      "type": "user",
+      "links": {
+        "html": {
+          "href": "https://bitbucket.org/dduarte"
+        },
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/users/dduarte"
+        },
+        "avatar": {
+          "href": "https://bitbucket.org/account/dduarte/avatar/32/"
+        }
+      },
+      "username": "dduarte"
+    },
+    "content": {
+      "html": "<p>Trigger hook</p>",
+      "raw": "REPLACEME",
+      "markup": "markdown"
+    },
+    "commit": {
+      "type": "commit",
+      "links": {
+        "html": {
+          "href": "https://bitbucket.org/shiftforward/ridgeback/commits/f544ddeab2c44a571a9a09f836b8b8edda102ecf"
+        },
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/commit/f544ddeab2c44a571a9a09f836b8b8edda102ecf"
+        }
+      },
+      "hash": "f544ddeab2c44a571a9a09f836b8b8edda102ecf"
+    },
+    "created_on": "2015-07-16T10:25:55.791550+00:00",
+    "updated_on": "2015-07-16T10:25:55.802641+00:00",
+    "links": {
+      "html": {
+        "href": "https://bitbucket.org/shiftforward/ridgeback/commits/f544ddeab2c44a571a9a09f836b8b8edda102ecf#comment-2108388"
+      },
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/shiftforward/ridgeback/commit/f544ddeab2c44a571a9a09f836b8b8edda102ecf/comments/2108388"
+      }
+    },
+    "id": 2108388
+  }
+}

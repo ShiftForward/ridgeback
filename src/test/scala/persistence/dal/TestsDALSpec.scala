@@ -1,18 +1,19 @@
 package persistence.dal
 
+import org.specs2.time.NoTimeConversions
 import persistence.entities.Test
 import utils.BeforeAllAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class TestsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
+class TestsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with NoTimeConversions {
   sequential
 
   lazy val modules = new Modules {}
 
   override def beforeAll() = {
-    modules.testsDal.createTables()
+    Await.result(modules.testsDal.createTables(), 5.seconds)
   }
 
   "Tests DAL" should {
@@ -26,7 +27,7 @@ class TestsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll {
     }
 
     "return valid test on get" in {
-      val test: Option[Test] = Await.result(modules.testsDal.getTestById(1), Duration(5, SECONDS))
+      val test: Option[Test] = Await.result(modules.testsDal.getTestById(1), 5.seconds)
       test must beSome
       test.get.id must beSome(1)
       test.get.projId must beSome(1)

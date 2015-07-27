@@ -11,6 +11,7 @@ trait ProjectsDal {
   def save(proj: Project): Future[Int]
   def getProjects(): Future[Seq[Project]]
   def getProjectById(id: Int): Future[Option[Project]]
+  def getProjectByGitRepo(repo: String): Future[Option[Project]]
   def createTables(): Future[Unit]
 }
 
@@ -23,6 +24,7 @@ class ProjectsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit va
 
   override def getProjectById(id: Int): Future[Option[Project]] = db.run(projects.filter(_.id === id).result.headOption)
 
+  override def getProjectByGitRepo(repo: String): Future[Option[Project]] = db.run(projects.filter(_.gitRepo === repo).result.headOption)
+
   override def createTables(): Future[Unit] = db.run(projects.schema.create)
 }
-

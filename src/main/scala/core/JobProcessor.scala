@@ -13,7 +13,7 @@ trait JobProcessor {
 object TimeJobProcessor extends JobProcessor {
   def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
     val d = Shell.executeCommandsTime(job.script, Some(job.name), sender)
-    Some(MetricOutput(d, job.name))
+    Some(MetricOutput(d, job.name, job.source))
   }
 }
 
@@ -23,7 +23,7 @@ object OutputJobProcessor extends JobProcessor {
     val duration = Try(Duration(lastOutput.toDouble, JobDefinitionUtilities.timeFormatToTimeUnit(job.format getOrElse "seconds")))
 
     duration match {
-      case Success(d) => Some(MetricOutput(d, job.name))
+      case Success(d) => Some(MetricOutput(d, job.name, job.source))
       case Failure(e) => throw InvalidOutput(job.script.last, Some(job.name))
     }
   }

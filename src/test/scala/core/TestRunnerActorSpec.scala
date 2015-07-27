@@ -12,8 +12,7 @@ abstract class AkkaTestkitSpecs2Support extends TestKit(ActorSystem()) with Afte
   def after = system.shutdown()
 }
 
-class TestRunnerActorTest extends Specification with NoTimeConversions {
-  // sequential
+class TestRunnerActorSpec extends Specification with NoTimeConversions {
 
   "A TestRunnerActor" should {
     "execute commands in order" in new AkkaTestkitSpecs2Support {
@@ -170,7 +169,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsg(CommandExecuted("mkdir ttt"))
       expectMsg(CommandExecuted("true"))
       expectMsg(CommandExecuted("rmdir ttt"))
-      expectMsg(Finished(1))
+      expectMsg(Finished)
     }
 
     def checkNotWindows = System.getProperty("os.name").startsWith("Windows") must be_==(false).orSkip
@@ -194,7 +193,6 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
       expectMsgClass(classOf[CommandStderr]) // user
       expectMsgClass(classOf[CommandStderr]) // sys
       val msg = expectMsgClass(classOf[MetricOutput])
-      msg.m must haveSuperclass[Duration]
     }
 
     "output source works correctly" in new AkkaTestkitSpecs2Support {
@@ -211,8 +209,7 @@ class TestRunnerActorTest extends Specification with NoTimeConversions {
 
       expectMsgClass(classOf[CommandExecuted])
       val msg = expectMsgClass(classOf[MetricOutput])
-      msg.m must haveSuperclass[Duration]
-      msg.m.asInstanceOf[Duration] === Duration(1, SECONDS)
+      msg.duration === 1.seconds
     }
   }
 }

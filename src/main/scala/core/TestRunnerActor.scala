@@ -6,10 +6,11 @@ import persistence.entities.TestsConfiguration
 import persistence.entities.YamlProtocol._
 
 import scala.util.{ Failure, Success, Try }
+import scala.concurrent.duration._
 
 trait TestRunnerException extends Exception
 case class BadConfiguration(errors: Seq[String]) extends Exception(errors.mkString(";")) with TestRunnerException
-case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends TestRunnerException
+case class CommandFailed(cmd: String, exitCode: Int, jobName: Option[String] = None) extends Exception(s"$cmd - $exitCode - $jobName") with TestRunnerException
 case class InvalidOutput(cmd: String, jobName: Option[String] = None) extends TestRunnerException
 
 case class Run(yamlStr: String, testId: Int)
@@ -17,11 +18,11 @@ case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
-case class MetricOutput(m: Any, jobName: String)
-case class Finished(testId: Int)
+case class MetricOutput(duration: Duration, jobName: String, source: String)
+case object Finished
 
 class TestRunnerActor extends Actor {
-  override def receive = {
+  def receive = {
     case Run(yamlStr, testId) =>
 
       parseConfig(yamlStr) match {
@@ -35,7 +36,7 @@ class TestRunnerActor extends Actor {
           }
       }
 
-      sender ! Finished(testId)
+      sender ! Finished
       context.stop(self)
   }
 
