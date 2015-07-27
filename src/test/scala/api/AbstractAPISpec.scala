@@ -7,10 +7,10 @@ import persistence.dal.{ JobsDal, TestsDal, ProjectsDal }
 import spray.testkit.Specs2RouteTest
 import utils.{ ActorModule, ConfigurationModuleImpl, PersistenceModule }
 
-trait AbstractAPITest extends Specification with Specs2RouteTest with Mockito {
+trait AbstractAPISpec extends Specification with Specs2RouteTest with Mockito {
 
   trait Modules extends ConfigurationModuleImpl with ActorModule with PersistenceModule {
-    val system = AbstractAPITest.this.system
+    val system = AbstractAPISpec.this.system
 
     override val projectsDal = mock[ProjectsDal]
     override val testsDal = mock[TestsDal]

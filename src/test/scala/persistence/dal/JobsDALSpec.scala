@@ -7,7 +7,7 @@ import utils.BeforeAllAfterAll
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class JobsDALTest extends AbstractPersistenceTest with BeforeAllAfterAll with NoTimeConversions {
+class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with NoTimeConversions {
   sequential
 
   lazy val modules = new Modules {}

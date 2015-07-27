@@ -5,7 +5,7 @@ import slick.backend.DatabaseConfig
 import slick.driver.JdbcProfile
 import utils._
 
-trait AbstractPersistenceTest extends Specification {
+trait AbstractPersistenceSpec extends Specification {
 
   trait Modules extends ConfigurationModuleImpl with PersistenceModule with DbModule {
 
