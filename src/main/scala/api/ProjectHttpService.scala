@@ -119,7 +119,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule 
     new ApiResponse(code = 204, message = "No Content"),
     new ApiResponse(code = 404, message = "Not Found"),
     new ApiResponse(code = 501, message = "Not Implemented")))
-  def ProjectTriggerRouteBB = path("project" / IntNumber / "trigger" / "bb") { projId =>
+  def ProjectTriggerRouteBB = path("projects" / IntNumber / "trigger" / "bb") { projId =>
     import core.PayloadJsonProtocol._
     post {
       entity(as[Payload]) {

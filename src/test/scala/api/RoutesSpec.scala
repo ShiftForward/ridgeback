@@ -93,8 +93,6 @@ class RoutesSpec extends AbstractAPISpec {
 
     "bitbucket trigger route runs successfully with PRs" in {
       modules.projectsDal.getProjectById(1) returns Future(Some(Project(Some(1), "ridgeback", "git@bitbucket.org:shiftforward/ridgeback.git")))
-      //modules.testsDal.save(Test(None, Some(1), "commit", Some(any[ZonedDateTime]), None)) returns Future(1)
-      //modules.jobsDal.save(any[Job]) returns (Future(1), Future(2), Future(3), Future(4), Future(5))
 
       import spray.json._
       import spray.json.DefaultJsonProtocol._
@@ -102,7 +100,7 @@ class RoutesSpec extends AbstractAPISpec {
       val file = getResourceURL("/bitbucket_pr_comment.json")
       val lines = Source.fromFile(file).mkString.replace("REPLACEME", modules.config.getString("worker.keyword"))
 
-      Post("/project/1/trigger/bb", lines.parseJson.asJsObject) ~> projects.ProjectTriggerRouteBB ~> check {
+      Post("/projects/1/trigger/bb", lines.parseJson.asJsObject) ~> projects.ProjectTriggerRouteBB ~> check {
         handled must beTrue
         status mustEqual Accepted
       }
@@ -117,7 +115,7 @@ class RoutesSpec extends AbstractAPISpec {
       val file = getResourceURL("/bitbucket_pr_comment.json")
       val lines = Source.fromFile(file).mkString.replace("REPLACEME", "some random comment")
 
-      Post("/project/1/trigger/bb", lines.parseJson.asJsObject) ~> projects.ProjectTriggerRouteBB ~> check {
+      Post("/projects/1/trigger/bb", lines.parseJson.asJsObject) ~> projects.ProjectTriggerRouteBB ~> check {
         handled must beTrue
         status mustEqual NoContent
       }
@@ -132,7 +130,7 @@ class RoutesSpec extends AbstractAPISpec {
       val file = getResourceURL("/bitbucket_commit_comment.json")
       val lines = Source.fromFile(file).mkString.replace("REPLACEME", modules.config.getString("worker.keyword"))
 
-      Post("/project/1/trigger/bb", lines.parseJson.asJsObject) ~> projects.ProjectTriggerRouteBB ~> check {
+      Post("/projects/1/trigger/bb", lines.parseJson.asJsObject) ~> projects.ProjectTriggerRouteBB ~> check {
         handled must beTrue
         status mustEqual NotImplemented
       }
