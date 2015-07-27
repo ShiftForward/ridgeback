@@ -7,7 +7,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
 import com.wordnik.swagger.annotations._
-import core.{ CloneRepository, Start, WorkerSupervisorActor }
+import core.{ EventPublisherModule, CloneRepository, Start, WorkerSupervisorActor }
 import persistence.entities._
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
@@ -20,7 +20,7 @@ import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
 @Api(value = "/projects", description = "Operations about projects")
-abstract class ProjectHttpService(modules: Configuration with PersistenceModule) extends HttpService with LazyLogging {
+abstract class ProjectHttpService(modules: Configuration with PersistenceModule with EventPublisherModule) extends HttpService with LazyLogging {
 
   import JsonProtocol._
   import SprayJsonSupport._

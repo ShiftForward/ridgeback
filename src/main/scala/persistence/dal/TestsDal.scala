@@ -1,7 +1,7 @@
 package persistence.dal
 
 import java.sql.Timestamp
-import java.time.{ ZoneId, ZonedDateTime, LocalDateTime }
+import java.time.{ ZoneId, ZonedDateTime }
 
 import com.typesafe.scalalogging.LazyLogging
 import persistence.entities.{ Test, Tests }

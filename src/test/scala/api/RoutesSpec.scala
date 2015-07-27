@@ -3,6 +3,7 @@ package api
 import java.net.URLDecoder
 import java.time.ZonedDateTime
 
+import core.ConsoleEventPublisher
 import persistence.entities.JsonProtocol._
 import persistence.entities.{ SimpleProject, Project, Test }
 import spray.http.StatusCodes._

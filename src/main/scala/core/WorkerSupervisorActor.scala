@@ -4,6 +4,7 @@ import java.nio.file.Files
 import java.time.ZonedDateTime
 
 import akka.actor.{ Actor, Props }
+import com.typesafe.config.Config
 import org.apache.commons.io.FileUtils
 import persistence.entities._
 import utils.{ Configuration, PersistenceModule }
@@ -16,7 +17,8 @@ import scala.util.{ Failure, Success }
 case class CloneRepository(pr: PullRequestPayload)
 case class Start(yamlStr: String)
 
-class WorkerSupervisorActor(modules: Configuration with PersistenceModule, project: Project, prSource: Option[PullRequestPayload]) extends Actor {
+class WorkerSupervisorActor(modules: Configuration with PersistenceModule with EventPublisherModule,
+                            project: Project, prSource: Option[PullRequestPayload]) extends Actor {
   import context._
 
   def receive: Receive = {
@@ -46,25 +48,24 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule, proje
   }
 
   def running(testId: Int): Receive = {
-    case TestError(ex) => println("TestError: " + ex)
-    case CommandExecuted(cmd) => println("CommandExecuted: " + cmd)
-    case CommandFailed(cmd, exitCode, jobName) => println("CommandFailed: " + cmd + " - " + exitCode + " - " + jobName)
-    case CommandStdout(str) => println("CommandStdout: " + str)
-    case CommandStderr(str) => println("CommandStderr: " + str)
+    case TestError(ex) => modules.publish(project.name, testId, EventType.TestError, ex.getMessage)
+    case CommandExecuted(cmd) => modules.publish(project.name, testId, EventType.CmdExecuted, cmd)
+    case CommandFailed(cmd, exitCode, jobName) => modules.publish(project.name, testId, EventType.CmdFailed, s"$cmd ($exitCode)")
+    case CommandStdout(str) => modules.publish(project.name, testId, EventType.Stdout, str)
+    case CommandStderr(str) => modules.publish(project.name, testId, EventType.Stderr, str)
     case MetricOutput(duration, jobName, source) =>
-      println("MetricOutput: " + duration + " - " + jobName)
+      modules.publish(project.name, testId, EventType.Metric, duration.toString)
       Await.result(modules.jobsDal.save(Job(None, project.id, Some(testId), jobName, source, duration)), 5.seconds)
-    case InvalidOutput(cmd, jobName) => println("InvalidOutput: " + cmd + " - " + jobName)
+    case InvalidOutput(cmd, jobName) => modules.publish(project.name, testId, EventType.InvalidOutput, cmd)
     case Finished =>
-      println(s"Finished $testId")
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
+      modules.publish(project.name, testId, EventType.Finished, "")
       prSource.foreach(pr => {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter)))
         actor ! SendComment(project, testId, pr)
       })
-
       context.stop(self)
-    case BadConfiguration(errs) => println("BadConfiguration: " + errs)
+    case BadConfiguration(errs) => modules.publish(project.name, testId, EventType.BadConfiguration, errs.mkString("\n"))
     case _ => println("Unknown")
   }
 }
