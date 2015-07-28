@@ -151,6 +151,22 @@ class TestRunnerActorSpec extends Specification with NoTimeConversions {
       expectMsgClass(classOf[TestRunnerException])
     }
 
+    "fail on burnin higher than repeat" in new AkkaTestkitSpecs2Support {
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: ignore
+              repeat: 10
+              burnin: 100
+              script:
+                - "true"
+        """.stripMargin, 1)
+
+      expectMsg(BadConfiguration(Seq("job1 has a burn-in (100) higher than repeat (10)")))
+    }
+
     "tears down correctly" in new AkkaTestkitSpecs2Support {
       val actor = system.actorOf(Props(new TestRunnerActor))
       actor ! Run(
@@ -210,6 +226,47 @@ class TestRunnerActorSpec extends Specification with NoTimeConversions {
       expectMsgClass(classOf[CommandExecuted])
       val msg = expectMsgClass(classOf[MetricOutput])
       msg.durations === List(1.seconds)
+    }
+
+    "repeat executes jobs N times" in new AkkaTestkitSpecs2Support {
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: output
+              format: seconds
+              repeat: 3
+              script:
+                - echo 1
+        """.stripMargin, 1)
+
+      expectMsgClass(classOf[CommandExecuted])
+      expectMsgClass(classOf[CommandExecuted])
+      expectMsgClass(classOf[CommandExecuted])
+      val msg = expectMsgClass(classOf[MetricOutput])
+      msg.durations === List.fill(3)(1.seconds)
+    }
+
+    "burnin discards N results" in new AkkaTestkitSpecs2Support {
+      val actor = system.actorOf(Props(new TestRunnerActor))
+      actor ! Run(
+        """
+          jobs:
+            - name: job1
+              source: output
+              format: seconds
+              repeat: 3
+              burnin: 1
+              script:
+                - echo 1
+        """.stripMargin, 1)
+
+      expectMsgClass(classOf[CommandExecuted])
+      expectMsgClass(classOf[CommandExecuted])
+      expectMsgClass(classOf[CommandExecuted])
+      val msg = expectMsgClass(classOf[MetricOutput])
+      msg.durations === List.fill(2)(1.seconds)
     }
   }
 }
