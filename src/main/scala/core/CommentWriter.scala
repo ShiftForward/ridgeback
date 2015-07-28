@@ -31,7 +31,7 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
               case ds if ds.length == 1 => strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took ${job.durations.head}\n\n")
               case ds if ds.isEmpty => strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) had no output\n\n")
               case ds =>
-                val avg = Duration((job.durations.map(_.toMillis).sum / job.durations.length), MILLISECONDS).toCoarsest
+                val avg = Duration(job.durations.map(_.toMillis).sum / job.durations.length, MILLISECONDS).toCoarsest
                 strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took in average $avg (min: ${ds.min}, max: ${ds.max})\n\n")
             }
           }
