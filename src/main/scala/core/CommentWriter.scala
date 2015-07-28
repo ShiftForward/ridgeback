@@ -7,6 +7,7 @@ import spray.client.pipelining._
 import spray.http.{ BasicHttpCredentials, HttpRequest, _ }
 import utils.{ Configuration, PersistenceModule }
 
+import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
@@ -26,7 +27,13 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
         case Success(jobs) =>
           val strBuilder = new StringBuilder
           jobs.foreach { job =>
-            strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took ${job.durations}\n\n")
+            job.durations match {
+              case ds if ds.length == 1 => strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took ${job.durations.head}\n\n")
+              case ds if ds.isEmpty => strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) had no output\n\n")
+              case ds =>
+                val avg = Duration((job.durations.map(_.toMillis).sum / job.durations.length), MILLISECONDS).toCoarsest
+                strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took in average $avg (min: ${ds.min}, max: ${ds.max})\n\n")
+            }
           }
 
           val response = commentWriter(prSource, strBuilder.toString(), modules)
