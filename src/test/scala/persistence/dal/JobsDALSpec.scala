@@ -23,7 +23,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
     }
 
     "return 1 on save" in {
-      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", List(1.seconds))) must beEqualTo(1).await
+      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", List(1.seconds, 2.seconds))) must beEqualTo(1).await
     }
 
     "return valid job on get" in {
@@ -34,7 +34,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
       job.get.testId must beSome(1)
       job.get.jobName === "name"
       job.get.source === "source"
-      job.get.durations === List(1.seconds)
+      job.get.durations === List(1.seconds, 2.seconds)
     }
 
     "return no jobs on bad get" in {

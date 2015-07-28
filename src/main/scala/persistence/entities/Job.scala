@@ -26,7 +26,7 @@ trait Jobs extends Profile {
     implicit val durationsSlick =
       MappedColumnType.base[List[Duration], String](
         durations => durations.map(d => d.toMillis).mkString(","),
-        str => str.split(';').map(s => s.toLong.milliseconds).toList)
+        str => str.split(',').map(s => s.toLong.milliseconds).toList)
 
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def projId = column[Int]("projId")
