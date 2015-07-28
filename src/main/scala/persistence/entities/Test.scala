@@ -27,11 +27,11 @@ trait Tests extends Profile {
         dt => Timestamp.valueOf(dt.toLocalDateTime),
         ts => ts.toLocalDateTime.atZone(ZoneId.systemDefault()))
 
-    def id = column[Int]("TEST_ID", O.PrimaryKey, O.AutoInc)
-    def projId = column[Int]("PROJ_ID")
-    def commit = column[String]("COMMIT")
-    def startDate = column[Option[ZonedDateTime]]("START_DATE")
-    def endDate = column[Option[ZonedDateTime]]("END_DATE")
+    def id = column[Int]("testId", O.PrimaryKey, O.AutoInc)
+    def projId = column[Int]("projId")
+    def commit = column[String]("commit")
+    def startDate = column[Option[ZonedDateTime]]("startDate")
+    def endDate = column[Option[ZonedDateTime]]("endDate")
 
     def * = (id.?, projId.?, commit, startDate, endDate) <> (Test.tupled, Test.unapply)
     // TODO def project = foreignKey("PROJ_FK", projId, TableQuery[Projects])(_.id)
