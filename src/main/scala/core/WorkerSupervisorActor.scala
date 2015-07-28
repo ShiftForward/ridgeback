@@ -4,7 +4,6 @@ import java.nio.file.Files
 import java.time.ZonedDateTime
 
 import akka.actor.{ Actor, Props }
-import com.typesafe.config.Config
 import org.apache.commons.io.FileUtils
 import persistence.entities._
 import utils.{ Configuration, PersistenceModule }
@@ -22,21 +21,25 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
   import context._
 
   def receive: Receive = {
-    case CloneRepository(pr) =>
 
+    case CloneRepository =>
       val dir = Files.createTempDirectory("repos")
       val dirFile = dir.toFile
       FileUtils.forceDeleteOnExit(dirFile)
 
       Process(Seq("git", "clone", project.gitRepo, dir.toString)).!
-      Process(Seq("git", "checkout", "-qf", pr.commit), dirFile).!
+      Process(Seq("git", "checkout", "-qf", prSource.map(pr => pr.commit).getOrElse("HEAD")), dirFile).!
       val ymlFile = Process(Seq("cat", ".perftests.yml"), dirFile).!!
 
       self.tell(Start(ymlFile), sender())
 
     case Start(yamlStr) =>
       val replyTo = sender()
-      modules.testsDal.save(Test(None, project.id, "commit", Some(ZonedDateTime.now()), None)) onComplete {
+
+      val commit = prSource.map(pr => pr.commit).getOrElse("HEAD")
+      val branch = prSource.map(pr => pr.branch)
+      val prId = prSource.map(pr => pr.pullRequestId)
+      modules.testsDal.save(Test(None, project.id, commit, branch, prId, Some(ZonedDateTime.now()), None)) onComplete {
         case Success(testId) =>
           context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId)
           become(running(testId))

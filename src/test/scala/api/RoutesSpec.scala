@@ -82,7 +82,7 @@ class RoutesSpec extends AbstractAPISpec {
 
     "trigger route runs successfully" in {
       modules.projectsDal.getProjectById(2) returns Future(Some(Project(Some(2), "name 1", "url 1")))
-      modules.testsDal.save(Test(None, Some(2), "commit", Some(any[ZonedDateTime]), None)) returns Future(3)
+      modules.testsDal.save(Test(None, Some(2), "commit", None, None, Some(any[ZonedDateTime]), None)) returns Future(3)
 
       Post("/projects/2/trigger") ~> projects.ProjectTriggerRoute ~> check {
         handled must beTrue

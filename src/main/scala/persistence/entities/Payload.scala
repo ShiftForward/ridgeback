@@ -12,6 +12,7 @@ case class PullRequestPayload(
   provider: String,
   repoFullName: String,
   commit: String,
+  branch: String,
   pullRequestId: Int) extends Payload
 
 case class CommitPayload(

@@ -27,9 +27,9 @@ object JsonProtocol extends DefaultJsonProtocol {
   }
 
   implicit val projectFormat = jsonFormat3(Project)
-  implicit val testFormat = jsonFormat5(Test)
+  implicit val testFormat = jsonFormat7(Test)
   implicit val jobFormat = jsonFormat6(Job)
   implicit val simpleProjectFormat = jsonFormat2(SimpleProject)
-  implicit val simpleTestFormat = jsonFormat2(SimpleTest)
+  implicit val simpleTestFormat = jsonFormat4(SimpleTest)
   implicit val simpleJobFormat = jsonFormat5(SimpleJob)
 }

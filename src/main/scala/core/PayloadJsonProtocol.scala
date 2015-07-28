@@ -17,7 +17,7 @@ object PayloadJsonProtocol extends DefaultJsonProtocol {
 
           (commitOpt, branchOpt, prIdOpt, repoNameOpt, commentOpt) match {
             case (Some(commit), Some(branch), Some(prId), Some(repoName), Some(comment)) =>
-              PullRequestPayload(comment, "bitbucket", repoName, commit, prId)
+              PullRequestPayload(comment, "bitbucket", repoName, commit, branch, prId)
             case _ => deserializationError(s"Could not extract PR fields from the PR Bitbucket payload: ${json.toString()}")
           }
         case (None, Some(_)) =>

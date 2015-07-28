@@ -23,7 +23,7 @@ class TestsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with N
     }
 
     "return 1 on save" in {
-      modules.testsDal.save(Test(None, Some(1), "commit", None, None)) must beEqualTo(1).await
+      modules.testsDal.save(Test(None, Some(1), "commit", Some("branch"), None, None, None)) must beEqualTo(1).await
     }
 
     "return valid test on get" in {
@@ -32,6 +32,8 @@ class TestsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with N
       test.get.id must beSome(1)
       test.get.projId must beSome(1)
       test.get.commit === "commit"
+      test.get.branch must beSome("branch")
+      test.get.prId must beNone
       test.get.startDate must beNone
       test.get.endDate must beNone
     }
@@ -42,14 +44,14 @@ class TestsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with N
     }
 
     "return 2 tests after inserting another one" in {
-      modules.testsDal.save(Test(None, Some(2), "commit", None, None)) must beEqualTo(2).await
+      modules.testsDal.save(Test(None, Some(2), "commit", None, None, None, None)) must beEqualTo(2).await
       modules.testsDal.getTests() must haveSize[Seq[Test]](2).await
       modules.testsDal.getTestsByProjId(1) must haveSize[Seq[Test]](1).await
     }
 
     "save returns the new id" in {
-      modules.testsDal.save(Test(None, Some(2), "commit", None, None)) must beEqualTo(3).await
-      modules.testsDal.save(Test(None, Some(2), "commit", None, None)) must beEqualTo(4).await
+      modules.testsDal.save(Test(None, Some(2), "commit", None, None, None, None)) must beEqualTo(3).await
+      modules.testsDal.save(Test(None, Some(2), "commit", None, None, None, None)) must beEqualTo(4).await
     }
   }
 
