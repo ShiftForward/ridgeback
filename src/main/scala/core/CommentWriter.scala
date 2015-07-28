@@ -26,7 +26,7 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
         case Success(jobs) =>
           val strBuilder = new StringBuilder
           jobs.foreach { job =>
-            strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took ${job.duration}\n\n")
+            strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took ${job.durations}\n\n")
           }
 
           val response = commentWriter(prSource, strBuilder.toString(), modules)

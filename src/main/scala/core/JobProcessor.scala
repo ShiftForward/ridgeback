@@ -23,7 +23,7 @@ object OutputJobProcessor extends JobProcessor {
     val duration = Try(Duration(lastOutput.toDouble, JobDefinitionUtilities.timeFormatToTimeUnit(job.format getOrElse "seconds")))
 
     duration match {
-      case Success(d) => Some(MetricOutput(d, job.name, job.source))
+      case Success(d) => Some(MetricOutput(List(d), job.name, job.source))
       case Failure(e) => throw InvalidOutput(job.script.last, Some(job.name))
     }
   }

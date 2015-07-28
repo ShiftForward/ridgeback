@@ -18,7 +18,7 @@ case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
-case class MetricOutput(duration: Duration, jobName: String, source: String)
+case class MetricOutput(durations: List[Duration], jobName: String, source: String)
 case object Finished
 
 class TestRunnerActor extends Actor {

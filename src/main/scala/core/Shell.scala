@@ -26,7 +26,7 @@ object Shell {
   }
 
   // wraps all commands in a call to /usr/bin/time and gets the real time of the /usr/bin/time output
-  def executeCommandsTime(cmds: List[String], jobName: Option[String] = None, sender: Option[ActorRef] = None): Duration = {
+  def executeCommandsTime(cmds: List[String], jobName: Option[String] = None, sender: Option[ActorRef] = None): List[Duration] = {
     val cmdSeq = Seq("/usr/bin/time", "-p", "sh", "-c", cmds.mkString(" && "))
     val cmd = cmdSeq.mkString(" ")
     sender.foreach(s => s ! CommandExecuted(cmd))
@@ -39,7 +39,7 @@ object Shell {
       case Success(o) =>
         val timeOutput = """real[\s]+(\d+.\d*)[\r\n\s]+user[\s]+(\d+.\d*)[\r\n\s]sys[\s]+(\d+.\d*)""".r.unanchored
         logger.err.toString() match {
-          case timeOutput(real, user, sys) => Duration(real.toDouble, SECONDS)
+          case timeOutput(real, user, sys) => List(real.toDouble.seconds)
           case _ => throw CommandFailed(cmd, -1, jobName)
         }
       case Failure(ex: RuntimeException) => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, jobName) // "Nonzero exit value: XX"

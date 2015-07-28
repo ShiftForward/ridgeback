@@ -1,7 +1,7 @@
 package persistence.entities
 
 import java.time.format.DateTimeFormatter
-import java.time.{ ZonedDateTime }
+import java.time.ZonedDateTime
 
 import spray.json.DefaultJsonProtocol
 

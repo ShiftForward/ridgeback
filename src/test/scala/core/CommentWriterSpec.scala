@@ -34,7 +34,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
       val prSource = PullRequestPayload("comment", "tests", "repo", "commit", 1)
       val commentWriter = new TestCommentWriter
 
-      modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(Job(Some(1), proj.id, Some(testId), "job", "source", 1.seconds)))
+      modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(Job(Some(1), proj.id, Some(testId), "job", "source", List(1.seconds))))
 
       val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
       actor ! SendComment(proj, testId, prSource)

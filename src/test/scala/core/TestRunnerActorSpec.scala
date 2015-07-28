@@ -209,7 +209,7 @@ class TestRunnerActorSpec extends Specification with NoTimeConversions {
 
       expectMsgClass(classOf[CommandExecuted])
       val msg = expectMsgClass(classOf[MetricOutput])
-      msg.duration === 1.seconds
+      msg.durations === List(1.seconds)
     }
   }
 }
