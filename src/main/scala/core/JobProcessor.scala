@@ -7,31 +7,29 @@ import scala.concurrent.duration._
 import scala.util.{ Failure, Success, Try }
 
 trait JobProcessor {
-  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput]
+  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Duration
 }
 
 object TimeJobProcessor extends JobProcessor {
-  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
-    val d = Shell.executeCommandsTime(job.script, Some(job.name), sender)
-    Some(MetricOutput(d, job.name, job.source))
+  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Duration = {
+    Shell.executeCommandsTime(job.script, Some(job.name), sender)
   }
 }
 
 object OutputJobProcessor extends JobProcessor {
-  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
+  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Duration = {
     val lastOutput = Shell.executeCommands(job.script, Some(job.name), sender)
-    val duration = Try(Duration(lastOutput.toDouble, JobDefinitionUtilities.timeFormatToTimeUnit(job.format getOrElse "seconds")))
+    val duration = Try(Duration(lastOutput.toDouble, JobDefinitionUtilities.timeFormatToTimeUnit(job.format.getOrElse("seconds"))))
 
     duration match {
-      case Success(d) => Some(MetricOutput(List(d), job.name, job.source))
+      case Success(d) => d
       case Failure(e) => throw InvalidOutput(job.script.last, Some(job.name))
     }
   }
 }
 
-object IgnoreJobProcessor extends JobProcessor {
-  def apply(job: JobDefinition, sender: Option[ActorRef] = None): Option[MetricOutput] = {
+object IgnoreProcessor {
+  def apply(job: JobDefinition, sender: Option[ActorRef] = None) = {
     Shell.executeCommands(job.script, Some(job.name), sender)
-    None
   }
 }
