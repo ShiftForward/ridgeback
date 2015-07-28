@@ -1,6 +1,6 @@
 package core
 
-import java.nio.file.Files
+import java.nio.file.{ Path, Files }
 import java.time.ZonedDateTime
 
 import akka.actor.{ Actor, Props }
@@ -14,7 +14,7 @@ import scala.sys.process._
 import scala.util.{ Failure, Success }
 
 case class CloneRepository(pr: PullRequestPayload)
-case class Start(yamlStr: String)
+case class Start(yamlStr: String, dir: Option[String] = None)
 
 class WorkerSupervisorActor(modules: Configuration with PersistenceModule with EventPublisherModule,
                             project: Project, prSource: Option[PullRequestPayload]) extends Actor {
@@ -31,15 +31,15 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
       Process(Seq("git", "checkout", "-qf", prSource.map(pr => pr.commit).getOrElse("HEAD")), dirFile).!
       val ymlFile = Process(Seq("cat", ".perftests.yml"), dirFile).!!
 
-      self.tell(Start(ymlFile), sender())
+      self.tell(Start(ymlFile, Some(dir.toString)), sender())
 
-    case Start(yamlStr) =>
+    case Start(yamlStr, dir) =>
       val replyTo = sender()
 
       val commit = prSource.map(pr => pr.commit).getOrElse("HEAD")
       val branch = prSource.map(pr => pr.branch)
       val prId = prSource.map(pr => pr.pullRequestId)
-      modules.testsDal.save(Test(None, project.id, commit, branch, prId, Some(ZonedDateTime.now()), None)) onComplete {
+      modules.testsDal.save(Test(None, project.id, commit, branch, prId, dir, Some(ZonedDateTime.now()), None)) onComplete {
         case Success(testId) =>
           context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId)
           become(running(testId))

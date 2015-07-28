@@ -8,7 +8,7 @@ import sys.process._
 
 object Shell {
 
-  //  executes commands in a shell, throws if any command fails and returns the last command stdout
+  // executes commands in a shell, throws if any command fails and returns the last command stdout
   def executeCommands(cmds: List[String], jobName: Option[String] = None, sender: Option[ActorRef] = None): String = {
     var lastOutput = ""
 

@@ -21,15 +21,15 @@ object JsonProtocol extends DefaultJsonProtocol {
   implicit object DurationJsonFormat extends JsonFormat[Duration] {
     def write(x: Duration) = JsNumber(x.toMillis)
     def read(value: JsValue) = value match {
-      case JsNumber(x) => Duration(x.toLongExact, MILLISECONDS)
+      case JsNumber(x) => x.toLongExact.milliseconds
       case x => deserializationError("Expected Long as JsNumber, but got " + x)
     }
   }
 
   implicit val projectFormat = jsonFormat3(Project)
-  implicit val testFormat = jsonFormat7(Test)
+  implicit val testFormat = jsonFormat8(Test)
   implicit val jobFormat = jsonFormat6(Job)
   implicit val simpleProjectFormat = jsonFormat2(SimpleProject)
-  implicit val simpleTestFormat = jsonFormat4(SimpleTest)
+  implicit val simpleTestFormat = jsonFormat5(SimpleTest)
   implicit val simpleJobFormat = jsonFormat5(SimpleJob)
 }

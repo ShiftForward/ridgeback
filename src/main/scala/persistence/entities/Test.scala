@@ -11,6 +11,7 @@ case class Test(
   commit: String,
   branch: Option[String],
   prId: Option[Int],
+  localDir: Option[String],
   startDate: Option[ZonedDateTime],
   endDate: Option[ZonedDateTime])
 
@@ -18,7 +19,8 @@ case class SimpleTest(
   projId: Option[Int],
   commit: String,
   branch: Option[String],
-  prId: Option[Int])
+  prId: Option[Int],
+  localDir: String)
 
 trait Tests extends Profile {
   import profile.api._
@@ -36,10 +38,11 @@ trait Tests extends Profile {
     def commit = column[String]("commit")
     def branch = column[Option[String]]("branch")
     def prId = column[Option[Int]]("prId")
+    def localDir = column[Option[String]]("localDir")
     def startDate = column[Option[ZonedDateTime]]("startDate")
     def endDate = column[Option[ZonedDateTime]]("endDate")
 
-    def * = (id.?, projId.?, commit, branch, prId, startDate, endDate) <> (Test.tupled, Test.unapply)
+    def * = (id.?, projId.?, commit, branch, prId, localDir, startDate, endDate) <> (Test.tupled, Test.unapply)
     // TODO def project = foreignKey("PROJ_FK", projId, TableQuery[Projects])(_.id)
   }
 
