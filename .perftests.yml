@@ -2,10 +2,14 @@ jobs:
   - name: googlehttp
     source: output
     format: seconds
+    repeat: 3
+    burnin: 1
     script:
       - curl -w %{time_total} -o NUL -s http://www.google.pt
   - name: googlehttps
     source: output
     format: seconds
+    repeat: 3
+    burnin: 1
     script:
       - curl -w %{time_total} -o NUL -s https://www.google.pt
