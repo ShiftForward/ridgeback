@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 import scala.sys.process._
 import scala.util.{ Failure, Success }
 
-case class CloneRepository(pr: PullRequestPayload)
+case object CloneRepository
 case class Start(yamlStr: String, dir: Option[String] = None)
 
 class WorkerSupervisorActor(modules: Configuration with PersistenceModule with EventPublisherModule,
@@ -28,7 +28,7 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
       FileUtils.forceDeleteOnExit(dirFile)
 
       Process(Seq("git", "clone", project.gitRepo, dir.toString)).!
-      Process(Seq("git", "checkout", "-qf", prSource.map(pr => pr.commit).getOrElse("HEAD")), dirFile).!
+      Process(Seq("git", "checkout", "-qf", prSource.fold("HEAD")(_.commit)), dirFile).!
       val ymlFile = Process(Seq("cat", ".perftests.yml"), dirFile).!!
 
       self.tell(Start(ymlFile, Some(dir.toString)), sender())
@@ -36,9 +36,9 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
     case Start(yamlStr, dir) =>
       val replyTo = sender()
 
-      val commit = prSource.map(pr => pr.commit).getOrElse("HEAD")
-      val branch = prSource.map(pr => pr.branch)
-      val prId = prSource.map(pr => pr.pullRequestId)
+      val commit = prSource.fold("HEAD")(_.commit)
+      val branch = prSource.map(_.branch)
+      val prId = prSource.map(_.pullRequestId)
       modules.testsDal.save(Test(None, project.id, commit, branch, prId, dir, Some(ZonedDateTime.now()), None)) onComplete {
         case Success(testId) =>
           context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId)
