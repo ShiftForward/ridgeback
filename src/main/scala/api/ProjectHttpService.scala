@@ -127,7 +127,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule 
           onSuccess(modules.projectsDal.getProjectById(projId)) {
             case Some(proj) =>
               val actor = actorRefFactory.actorOf(Props(new WorkerSupervisorActor(modules, proj, Some(pr))))
-              actor ! CloneRepository(pr)
+              actor ! CloneRepository
               complete(Accepted)
             case None => complete(NotFound)
             case ex => complete(InternalServerError, s"An error occurred: $ex")

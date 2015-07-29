@@ -1,10 +1,9 @@
 package core
 
-import java.nio.file.Files
+import java.nio.file.{ Path, Files }
 import java.time.ZonedDateTime
 
 import akka.actor.{ Actor, Props }
-import com.typesafe.config.Config
 import org.apache.commons.io.FileUtils
 import persistence.entities._
 import utils.{ Configuration, PersistenceModule }
@@ -14,29 +13,33 @@ import scala.concurrent.duration._
 import scala.sys.process._
 import scala.util.{ Failure, Success }
 
-case class CloneRepository(pr: PullRequestPayload)
-case class Start(yamlStr: String)
+case object CloneRepository
+case class Start(yamlStr: String, dir: Option[String] = None)
 
 class WorkerSupervisorActor(modules: Configuration with PersistenceModule with EventPublisherModule,
                             project: Project, prSource: Option[PullRequestPayload]) extends Actor {
   import context._
 
   def receive: Receive = {
-    case CloneRepository(pr) =>
 
+    case CloneRepository =>
       val dir = Files.createTempDirectory("repos")
       val dirFile = dir.toFile
       FileUtils.forceDeleteOnExit(dirFile)
 
       Process(Seq("git", "clone", project.gitRepo, dir.toString)).!
-      Process(Seq("git", "checkout", "-qf", pr.commit), dirFile).!
+      Process(Seq("git", "checkout", "-qf", prSource.fold("HEAD")(_.commit)), dirFile).!
       val ymlFile = Process(Seq("cat", ".perftests.yml"), dirFile).!!
 
-      self.tell(Start(ymlFile), sender())
+      self.tell(Start(ymlFile, Some(dir.toString)), sender())
 
-    case Start(yamlStr) =>
+    case Start(yamlStr, dir) =>
       val replyTo = sender()
-      modules.testsDal.save(Test(None, project.id, "commit", Some(ZonedDateTime.now()), None)) onComplete {
+
+      val commit = prSource.fold("HEAD")(_.commit)
+      val branch = prSource.map(_.branch)
+      val prId = prSource.map(_.pullRequestId)
+      modules.testsDal.save(Test(None, project.id, commit, branch, prId, dir, Some(ZonedDateTime.now()), None)) onComplete {
         case Success(testId) =>
           context.actorOf(Props(new TestRunnerActor)) ! Run(yamlStr, testId)
           become(running(testId))
