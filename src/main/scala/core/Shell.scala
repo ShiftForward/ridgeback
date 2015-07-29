@@ -39,7 +39,7 @@ object Shell {
       case Success(o) =>
         val timeOutput = """real[\s]+(\d+.\d*)[\r\n\s]+user[\s]+(\d+.\d*)[\r\n\s]sys[\s]+(\d+.\d*)""".r.unanchored
         logger.err.toString() match {
-          case timeOutput(real, user, sys) => Duration(real.toDouble, SECONDS)
+          case timeOutput(real, user, sys) => real.toDouble.seconds
           case _ => throw CommandFailed(cmd, -1, jobName)
         }
       case Failure(ex: RuntimeException) => throw CommandFailed(cmd, ex.getMessage.split(' ').last.toInt, jobName) // "Nonzero exit value: XX"

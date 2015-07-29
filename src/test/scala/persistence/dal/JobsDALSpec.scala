@@ -23,7 +23,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
     }
 
     "return 1 on save" in {
-      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", 1.seconds)) must beEqualTo(1).await
+      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", List(1.seconds, 2.seconds))) must beEqualTo(1).await
     }
 
     "return valid job on get" in {
@@ -34,7 +34,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
       job.get.testId must beSome(1)
       job.get.jobName === "name"
       job.get.source === "source"
-      job.get.duration === 1.seconds
+      job.get.durations === List(1.seconds, 2.seconds)
     }
 
     "return no jobs on bad get" in {
@@ -43,15 +43,15 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
     }
 
     "return 2 jobs after inserting another one" in {
-      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", 1.seconds)) must beEqualTo(2).await
+      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", List(1.seconds))) must beEqualTo(2).await
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](2).await
       modules.jobsDal.getJobsByTestId(1) must haveSize[Seq[Job]](2).await
     }
 
     "getJobsByTestId filters properly" in {
-      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.1", "source", 1.seconds)) must beEqualTo(3).await
-      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.2", "source", 1.seconds)) must beEqualTo(4).await
-      modules.jobsDal.save(Job(None, Some(1), Some(3), "name3.1", "source", 1.seconds)) must beEqualTo(5).await
+      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.1", "source", List(1.seconds))) must beEqualTo(3).await
+      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.2", "source", List(1.seconds))) must beEqualTo(4).await
+      modules.jobsDal.save(Job(None, Some(1), Some(3), "name3.1", "source", List(1.seconds))) must beEqualTo(5).await
 
       modules.jobsDal.getJobsByTestId(2) must haveSize[Seq[Job]](2).await
       modules.jobsDal.getJobsByTestId(3) must haveSize[Seq[Job]](1).await

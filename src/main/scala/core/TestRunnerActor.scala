@@ -18,7 +18,7 @@ case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
-case class MetricOutput(duration: Duration, jobName: String, source: String)
+case class MetricOutput(durations: List[Duration], jobName: String, source: String)
 case object Finished
 
 class TestRunnerActor extends Actor {
@@ -55,18 +55,21 @@ class TestRunnerActor extends Actor {
     }
 
     val errors = config.jobs.flatMap(job => {
-      if (job.script.isEmpty) {
+      if (job.script.isEmpty)
         Some(s"${job.name} does not have any command in script")
-      } else {
+      else if (job.repeat.getOrElse(1) <= 0)
+        Some(s"${job.name} has non positive repeat (${job.repeat.get}")
+      else if (job.burnin.getOrElse(0) < 0)
+        Some(s"${job.name} has a negative burn-in (${job.burnin.get}")
+      else if (job.burnin.getOrElse(0) > job.repeat.getOrElse(1))
+        Some(s"${job.name} has a burn-in (${job.burnin.getOrElse(0)}) higher than repeat (${job.repeat.getOrElse(1)})")
+      else {
         sourceFormats.get(job.source) match {
           case Some(formats) =>
-            if (formats.nonEmpty && !formats.contains(job.format.getOrElse(""))) {
+            if (formats.nonEmpty && !formats.contains(job.format.getOrElse("")))
               Some(s"${job.name} format ${job.format.getOrElse("\"\"")} doesn't match source ${job.source}")
-            } else {
-              None
-            }
-          case None =>
-            Some(s"${job.name} has unknown source ${job.source}")
+            else None
+          case None => Some(s"${job.name} has unknown source ${job.source}")
         }
       }
     })
@@ -81,17 +84,32 @@ class TestRunnerActor extends Actor {
     test.before_jobs.foreach(Shell.executeCommands(_, None, Some(sender())))
 
     test.jobs.foreach(job => {
-      job.before_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
 
-      val metric: Option[MetricOutput] = job.source match {
-        case "time" => TimeJobProcessor(job, Some(sender()))
-        case "output" => OutputJobProcessor(job, Some(sender()))
-        case _ => IgnoreJobProcessor(job, Some(sender()))
+      val processor = job.source match {
+        case "time" => Some(TimeJobProcessor)
+        case "output" => Some(OutputJobProcessor)
+        case _ => None
       }
 
-      metric.foreach(d => sender ! d)
+      processor match {
+        case Some(p) =>
+          val durations = List.fill(job.repeat.getOrElse(1)) {
+            job.before_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
 
-      job.after_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
+            val duration = p(job, Some(sender()))
+
+            job.after_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
+            duration
+          }.drop(job.burnin.getOrElse(0))
+
+          sender() ! MetricOutput(durations, job.name, job.source)
+        case None =>
+          for (i <- 1 to job.repeat.getOrElse(1)) {
+            job.before_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
+            IgnoreProcessor(job, Some(sender()))
+            job.after_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
+          }
+      }
     })
 
     test.after_jobs.foreach(Shell.executeCommands(_, None, Some(sender())))

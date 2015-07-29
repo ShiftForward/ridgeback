@@ -24,6 +24,8 @@ case class JobDefinition(
   name: String,
   source: String,
   format: Option[String],
+  repeat: Option[Int],
+  burnin: Option[Int],
   before_script: Option[List[String]],
   script: List[String],
   after_script: Option[List[String]])
