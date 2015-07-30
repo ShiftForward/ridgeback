@@ -15,6 +15,12 @@ case class SendComment(proj: Project, testId: Int, prSource: PullRequestPayload)
 trait CommentWriter {
   def apply(prSource: PullRequestPayload, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory,
                                                                                ec: ExecutionContext): Future[HttpResponse]
+
+  def actionNew(): String
+  def actionBetter(): String
+  def actionWorse(): String
+  def actionEqual(): String
+  def actionUnknown(): String
 }
 
 class CommentWriterActor(modules: Configuration with PersistenceModule, commentWriter: CommentWriter) extends Actor with LazyLogging {
@@ -25,7 +31,7 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
 
       val response = for {
         jobs <- modules.jobsDal.getJobsByTestId(testId)
-        jobComment <- Future.sequence(jobs.map(buildComment)).map(_.mkString("\n\n"))
+        jobComment <- Future.sequence(jobs.map(buildComment(_, commentWriter))).map(_.mkString("\n\n"))
         response <- commentWriter(prSource, jobComment, modules)
       } yield response
 
@@ -43,10 +49,10 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
       }
   }
 
-  def buildComment(job: Job): Future[String] = {
+  def buildComment(job: Job, commentWriter: CommentWriter): Future[String] = {
     val description = s"${job.jobName} (${job.id.get})"
     job.durations match {
-      case ds if ds.isEmpty => Future(s"- :confused: Job $description had no output")
+      case ds if ds.isEmpty => Future(s"- ${commentWriter.actionUnknown()} Job $description had no output")
       case ds =>
         modules.jobsDal.getPastJobs(job).map { pastJobs =>
           val pastMeanOpt = pastJobs.headOption
@@ -59,12 +65,12 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
           pastMeanOpt match {
             case Some(pastMean) =>
               val action = pastMean.compare(mean) match {
-                case c if c < 0 => ":-1:"
-                case c if c > 0 => ":+1:"
-                case _ => ":sleeping"
+                case c if c < 0 => commentWriter.actionWorse()
+                case c if c > 0 => commentWriter.actionBetter()
+                case _ => commentWriter.actionEqual()
               }
               s"- $action Job $description took in average $mean [$min, $max] (before ${pastMeanOpt.get})"
-            case None => s"- :new: Job $description took in average $mean [$min, $max]"
+            case None => s"- ${commentWriter.actionNew()}} Job $description took in average $mean [$min, $max]"
           }
         }
     }
@@ -81,4 +87,10 @@ object BitbucketCommentWriter extends CommentWriter {
 
     pipeline(Post(url, FormData(Seq("content" -> msg))))
   }
+
+  def actionNew() = ":new:"
+  def actionBetter() = ":green_heart:"
+  def actionWorse() = ":broken_heart:"
+  def actionEqual() = ":yellow_heart:"
+  def actionUnknown() = ":confused:"
 }

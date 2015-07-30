@@ -17,6 +17,12 @@ class TestCommentWriter extends CommentWriter {
     message = msg
     Future(new HttpResponse())
   }
+
+  def actionNew() = "[new]"
+  def actionBetter() = "[better]"
+  def actionWorse() = "[worse]"
+  def actionEqual() = "[equal]"
+  def actionUnknown() = "[unknown]"
 }
 
 class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
@@ -40,7 +46,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
         actor ! SendComment(proj, testId, prSource)
 
-        commentWriter.message must contain(":new:").eventually
+        commentWriter.message must contain(commentWriter.actionNew()).eventually
       }
 
       "jobs with worse past job" in {
@@ -60,7 +66,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
         actor ! SendComment(proj, testId, prSource)
 
-        commentWriter.message must contain(":+1:").eventually
+        commentWriter.message must contain(commentWriter.actionBetter()).eventually
       }
 
       "jobs with best past job" in {
@@ -81,7 +87,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
         actor ! SendComment(proj, testId, prSource)
 
-        commentWriter.message must contain(":-1:").eventually
+        commentWriter.message must contain(commentWriter.actionWorse()).eventually
       }
     }
   }
