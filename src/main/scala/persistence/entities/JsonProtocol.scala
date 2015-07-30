@@ -28,8 +28,8 @@ object JsonProtocol extends DefaultJsonProtocol {
 
   implicit val projectFormat = jsonFormat3(Project)
   implicit val testFormat = jsonFormat8(Test)
-  implicit val jobFormat = jsonFormat6(Job)
+  implicit val jobFormat = jsonFormat7(Job)
   implicit val simpleProjectFormat = jsonFormat2(SimpleProject)
   implicit val simpleTestFormat = jsonFormat5(SimpleTest)
-  implicit val simpleJobFormat = jsonFormat5(SimpleJob)
+  implicit val simpleJobFormat = jsonFormat6(SimpleJob)
 }

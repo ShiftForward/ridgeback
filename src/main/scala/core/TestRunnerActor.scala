@@ -18,7 +18,7 @@ case class TestError(ex: Throwable)
 case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
-case class MetricOutput(durations: List[Duration], jobName: String, source: String)
+case class MetricOutput(durations: List[Duration], jobName: String, source: String, threshold: Option[Int])
 case object Finished
 
 class TestRunnerActor extends Actor {
@@ -102,7 +102,7 @@ class TestRunnerActor extends Actor {
             duration
           }.drop(job.burnin.getOrElse(0))
 
-          sender() ! MetricOutput(durations, job.name, job.source)
+          sender() ! MetricOutput(durations, job.name, job.source, job.threshold)
         case None =>
           for (i <- 1 to job.repeat.getOrElse(1)) {
             job.before_script.foreach(Shell.executeCommands(_, Some(job.name), Some(sender())))
