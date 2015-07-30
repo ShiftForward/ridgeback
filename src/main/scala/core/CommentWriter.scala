@@ -53,7 +53,7 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
   def buildComment(job: Job, commentWriter: CommentWriter): Future[String] = {
     val description = s"${job.jobName} (${job.id.get})"
     job.durations match {
-      case ds if ds.isEmpty => Future(s"- ${commentWriter.actionUnknown()} Job $description had no output")
+      case ds if ds.isEmpty => Future(s"- ${commentWriter.actionUnknown} Job $description had no output")
       case ds =>
         modules.jobsDal.getPastJobs(job).map { pastJobs =>
           val pastMeanOpt = pastJobs.headOption
@@ -66,12 +66,12 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
           pastMeanOpt match {
             case Some(pastMean) =>
               val action = pastMean.compare(mean) match {
-                case c if c < 0 => commentWriter.actionWorse()
-                case c if c > 0 => commentWriter.actionBetter()
-                case _ => commentWriter.actionEqual()
+                case c if c < 0 => commentWriter.actionWorse
+                case c if c > 0 => commentWriter.actionBetter
+                case _ => commentWriter.actionEqual
               }
-              s"- $action Job $description took in average ${mean.toString()} [${min.toShortString}, ${max.toShortString}] (before ${pastMeanOpt.get.toShortString})"
-            case None => s"- ${commentWriter.actionNew()} Job $description took in average ${mean.toShortString} [${min.toShortString}, ${max.toShortString}]"
+              s"- $action Job $description took in average ${mean.toShortString()} [${min.toShortString}, ${max.toShortString}] (before ${pastMeanOpt.get.toShortString})"
+            case None => s"- ${commentWriter.actionNew} Job $description took in average ${mean.toShortString} [${min.toShortString}, ${max.toShortString}]"
           }
         }
     }

@@ -46,7 +46,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
         actor ! SendComment(proj, testId, prSource)
 
-        commentWriter.message must contain(commentWriter.actionNew()).eventually
+        commentWriter.message must contain(commentWriter.actionNew).eventually
       }
 
       "jobs with worse past job" in {
@@ -66,7 +66,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
         actor ! SendComment(proj, testId, prSource)
 
-        commentWriter.message must contain(commentWriter.actionBetter()).eventually
+        commentWriter.message must contain(commentWriter.actionBetter).eventually
       }
 
       "jobs with best past job" in {
@@ -87,7 +87,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
         actor ! SendComment(proj, testId, prSource)
 
-        commentWriter.message must contain(commentWriter.actionWorse()).eventually
+        commentWriter.message must contain(commentWriter.actionWorse).eventually
       }
     }
   }
