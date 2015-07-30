@@ -1,5 +1,6 @@
 package core
 
+import java.io.File
 import java.nio.file.{ Path, Files }
 import java.time.ZonedDateTime
 
@@ -20,12 +21,14 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
                             project: Project, prSource: Option[PullRequestPayload]) extends Actor {
   import context._
 
+  var tempDir: Option[File] = None
+
   def receive: Receive = {
 
     case CloneRepository =>
       val dir = Files.createTempDirectory("repos")
       val dirFile = dir.toFile
-      FileUtils.forceDeleteOnExit(dirFile)
+      tempDir = Some(dirFile)
 
       Process(Seq("git", "clone", project.gitRepo, dir.toString)).!
       Process(Seq("git", "checkout", "-qf", prSource.fold("HEAD")(_.commit)), dirFile).!
@@ -62,6 +65,7 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
     case InvalidOutput(cmd, jobName) => modules.publish(project.name, testId, EventType.InvalidOutput, cmd)
     case Finished =>
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
+      tempDir.foreach(d => FileUtils.forceDelete(d))
       modules.publish(project.name, testId, EventType.Finished, "")
       prSource.foreach(pr => {
         val actor = system.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter)))
