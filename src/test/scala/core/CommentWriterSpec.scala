@@ -18,11 +18,11 @@ class TestCommentWriter extends CommentWriter {
     Future(new HttpResponse())
   }
 
-  def actionNew() = "[new]"
-  def actionBetter() = "[better]"
-  def actionWorse() = "[worse]"
-  def actionEqual() = "[equal]"
-  def actionUnknown() = "[unknown]"
+  val actionNew = "[new]"
+  val actionBetter = "[better]"
+  val actionWorse = "[worse]"
+  val actionEqual = "[equal]"
+  val actionUnknown = "[unknown]"
 }
 
 class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {

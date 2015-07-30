@@ -16,11 +16,11 @@ trait CommentWriter {
   def apply(prSource: PullRequestPayload, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory,
                                                                                ec: ExecutionContext): Future[HttpResponse]
 
-  def actionNew(): String
-  def actionBetter(): String
-  def actionWorse(): String
-  def actionEqual(): String
-  def actionUnknown(): String
+  def actionNew: String
+  def actionBetter: String
+  def actionWorse: String
+  def actionEqual: String
+  def actionUnknown: String
 }
 
 class CommentWriterActor(modules: Configuration with PersistenceModule, commentWriter: CommentWriter) extends Actor with LazyLogging {
@@ -88,9 +88,9 @@ object BitbucketCommentWriter extends CommentWriter {
     pipeline(Post(url, FormData(Seq("content" -> msg))))
   }
 
-  def actionNew() = ":new:"
-  def actionBetter() = ":green_heart:"
-  def actionWorse() = ":broken_heart:"
-  def actionEqual() = ":blue_heart:"
-  def actionUnknown() = ":confused:"
+  val actionNew = ":new:"
+  val actionBetter = ":green_heart:"
+  val actionWorse = ":broken_heart:"
+  val actionEqual = ":blue_heart:"
+  val actionUnknown = ":confused:"
 }
