@@ -2,7 +2,7 @@ package persistence.dal
 
 import org.specs2.time.NoTimeConversions
 import persistence.entities.Test
-import utils.BeforeAllAfterAll
+import specUtils.BeforeAllAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

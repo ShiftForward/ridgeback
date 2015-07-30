@@ -1,4 +1,4 @@
-package utils
+package specUtils
 
 import org.specs2.mutable.Specification
 import org.specs2.specification.{ Fragments, Step }

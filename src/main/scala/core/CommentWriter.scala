@@ -7,7 +7,6 @@ import spray.client.pipelining._
 import spray.http.{ BasicHttpCredentials, HttpRequest, _ }
 import utils._
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
@@ -51,6 +50,8 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
   }
 
   def buildComment(job: Job, commentWriter: CommentWriter): Future[String] = {
+    import utils.RichDuration._
+
     val description = s"${job.jobName} (${job.id.get})"
     job.durations match {
       case ds if ds.isEmpty => Future(s"- ${commentWriter.actionUnknown} Job $description had no output")
@@ -70,33 +71,9 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
                 case c if c > 0 => commentWriter.actionBetter
                 case _ => commentWriter.actionEqual
               }
-              s"- $action Job $description took in average ${mean.toShortString()} [${min.toShortString}, ${max.toShortString}] (before ${pastMeanOpt.get.toShortString})"
+              s"- $action Job $description took in average ${mean.toShortString} [${min.toShortString}, ${max.toShortString}] (before ${pastMeanOpt.get.toShortString})"
             case None => s"- ${commentWriter.actionNew} Job $description took in average ${mean.toShortString} [${min.toShortString}, ${max.toShortString}]"
           }
-        }
-    }
-  }
-
-  implicit class RichDuration(val dur: Duration) {
-    def toShortString: String = {
-      Seq(
-        " second" -> "s",
-        " seconds" -> "s",
-        " minute" -> "min",
-        " minutes" -> "min",
-        " hour" -> "h",
-        " hours" -> "h",
-        " day" -> "d",
-        " days" -> "d",
-        " nanosecond" -> "n",
-        " nanoseconds" -> "n",
-        " microsecond" -> "µ",
-        " microseconds" -> "µ",
-        " millisecond" -> "m",
-        " milliseconds" -> "m",
-        " nanosecond" -> "n",
-        " nanoseconds" -> "n").foldLeft(dur.toString) {
-          case (z, (s, r)) => z.replaceAll(s, r)
         }
     }
   }
