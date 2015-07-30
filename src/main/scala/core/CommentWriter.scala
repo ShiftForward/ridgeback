@@ -91,6 +91,6 @@ object BitbucketCommentWriter extends CommentWriter {
   def actionNew() = ":new:"
   def actionBetter() = ":green_heart:"
   def actionWorse() = ":broken_heart:"
-  def actionEqual() = ":yellow_heart:"
+  def actionEqual() = ":blue_heart:"
   def actionUnknown() = ":confused:"
 }
