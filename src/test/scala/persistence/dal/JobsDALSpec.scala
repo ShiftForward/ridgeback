@@ -58,6 +58,28 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
       modules.jobsDal.getJobsByTestId(4) must haveSize[Seq[Job]](0).await
     }
 
+    "return past jobs" in {
+      val jobIds = Await.result(for {
+        jobId1 <- modules.jobsDal.save(Job(None, Some(5), Some(1), "name", "source", List(1.seconds)))
+        jobId2 <- modules.jobsDal.save(Job(None, Some(5), Some(2), "name", "source", List(2.seconds)))
+        jobId3 <- modules.jobsDal.save(Job(None, Some(6), Some(2), "name", "source", List(2.seconds)))
+        jobId4 <- modules.jobsDal.save(Job(None, Some(5), Some(3), "name2", "source", List(3.seconds)))
+        jobId5 <- modules.jobsDal.save(Job(None, Some(5), Some(3), "name", "source", List(3.seconds)))
+      } yield (jobId1, jobId2, jobId3, jobId4, jobId5), 5.seconds)
+
+      val jobs = Await.result(for {
+        job1 <- modules.jobsDal.getJobById(jobIds._1)
+        job2 <- modules.jobsDal.getJobById(jobIds._2)
+        job3 <- modules.jobsDal.getJobById(jobIds._3)
+        job4 <- modules.jobsDal.getJobById(jobIds._4)
+        job5 <- modules.jobsDal.getJobById(jobIds._5)
+      } yield (job1, job2, job3, job4, job5), 5.seconds)
+
+      val expectedPastJobs = Seq(jobs._5.get, jobs._2.get)
+
+      modules.jobsDal.getPastJobs(jobs._1.get) must beEqualTo(expectedPastJobs).await
+    }
+
   }
 
   override def afterAll() = {

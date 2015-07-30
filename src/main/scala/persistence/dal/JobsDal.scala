@@ -12,6 +12,7 @@ trait JobsDal {
   def getJobs(): Future[Seq[Job]]
   def getJobsByTestId(testId: Int): Future[Seq[Job]]
   def getJobById(id: Int): Future[Option[Job]]
+  def getPastJobs(job: Job): Future[Seq[Job]]
   def createTables(): Future[Unit]
 }
 
@@ -26,5 +27,14 @@ class JobsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit val pr
 
   override def getJobById(id: Int): Future[Option[Job]] = db.run(jobs.filter(_.id === id).result.headOption)
 
-  override def createTables(): Future[Unit] = db.run(DBIO.seq(jobs.schema.create))
+  // recent jobs appear first
+  override def getPastJobs(job: Job): Future[Seq[Job]] = {
+    db.run(jobs.filter { j =>
+      j.id =!= job.id &&
+        j.projId === job.projId &&
+        j.jobName === job.jobName
+    }.sortBy(_.id.desc).result)
+  }
+
+  override def createTables(): Future[Unit] = db.run(jobs.schema.create)
 }
