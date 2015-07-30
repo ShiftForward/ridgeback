@@ -29,7 +29,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val proj = Project(Some(1), "name", "repo")
         val testId = 1
         val jobId = 1
-        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", 1)
+        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
         val job1 = Job(Some(jobId), proj.id, Some(testId), "job", "source", List(1.seconds))
 
         val modules = new Modules {}
@@ -47,7 +47,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val proj = Project(Some(2), "name", "repo")
         val testId = 2
         val jobId = 2
-        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", 1)
+        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
         val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", List(3.seconds))
         val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", List(2.seconds))
         val job3 = Job(Some(jobId + 2), proj.id, Some(testId + 2), "job", "source", List(4.seconds))
@@ -67,7 +67,7 @@ class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
         val proj = Project(Some(3), "name", "repo")
         val testId = 5
         val jobId = 5
-        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", 1)
+        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
 
         val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", List(3.seconds))
         val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", List(4.seconds))
