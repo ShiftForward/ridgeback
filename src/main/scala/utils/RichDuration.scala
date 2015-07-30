@@ -26,5 +26,14 @@ object RichDuration {
           case (z, (s, r)) => z.replaceAll(s, r)
         }
     }
+
+    def compareThresh(otherDur: Duration, thresh: Int): Int = {
+      def inThreshold = Math.abs((dur - otherDur) / otherDur) * 100 <= thresh
+
+      dur.compare(otherDur) match {
+        case c if inThreshold => 0
+        case c => c
+      }
+    }
   }
 }

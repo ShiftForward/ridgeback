@@ -14,5 +14,19 @@ class RichDurationSpec extends Specification with NoTimeConversions {
       2.seconds.toShortString === "2s"
       100.milliseconds.toShortString === "100ms"
     }
+
+    "compare with threshold" in {
+      val d1 = 2500.milliseconds
+      val d2 = 2501.milliseconds
+      val d3 = 3000.milliseconds
+      val d4 = 3.seconds
+
+      d1.compareThresh(d2, 10) must be_==(0)
+      d1.compareThresh(d3, 50) must be_==(0)
+      d3.compareThresh(d4, 10) must be_==(0)
+      d2.compareThresh(d3, 10) must be_<(0)
+      d3.compareThresh(d2, 10) must be_>(0)
+      d2.compareThresh(d3, 100) must be_==(0)
+    }
   }
 }
