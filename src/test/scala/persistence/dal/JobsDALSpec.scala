@@ -22,7 +22,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](0).await
     }
 
-    "return 1 on save" in {
+    "return 1 on save" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", None, List(1.seconds, 2.seconds))) must beEqualTo(1).await
     }
 
@@ -42,13 +42,13 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
       modules.jobsDal.getJobsByTestId(3) must haveSize[Seq[Job]](0).await
     }
 
-    "return 2 jobs after inserting another one" in {
+    "return 2 jobs after inserting another one" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", None, List(1.seconds))) must beEqualTo(2).await
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](2).await
       modules.jobsDal.getJobsByTestId(1) must haveSize[Seq[Job]](2).await
     }
 
-    "getJobsByTestId filters properly" in {
+    "getJobsByTestId filters properly" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.1", "source", None, List(1.seconds))) must beEqualTo(3).await
       modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.2", "source", None, List(1.seconds))) must beEqualTo(4).await
       modules.jobsDal.save(Job(None, Some(1), Some(3), "name3.1", "source", None, List(1.seconds))) must beEqualTo(5).await
@@ -58,7 +58,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
       modules.jobsDal.getJobsByTestId(4) must haveSize[Seq[Job]](0).await
     }
 
-    "return past jobs" in {
+    "return past jobs" in { implicit ee: ExecutionEnv =>
       val jobIds = Await.result(for {
         jobId1 <- modules.jobsDal.save(Job(None, Some(5), Some(1), "name", "source", None, List(1.seconds)))
         jobId2 <- modules.jobsDal.save(Job(None, Some(5), Some(2), "name", "source", None, List(2.seconds)))
