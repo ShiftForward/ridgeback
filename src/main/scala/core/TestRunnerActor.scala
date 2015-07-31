@@ -5,8 +5,8 @@ import net.jcazevedo.moultingyaml._
 import persistence.entities.TestsConfiguration
 import persistence.entities.YamlProtocol._
 
-import scala.util.{ Failure, Success, Try }
 import scala.concurrent.duration._
+import scala.util.{ Failure, Success, Try }
 
 trait TestRunnerException extends Exception
 case class BadConfiguration(errors: Seq[String]) extends Exception(errors.mkString(";")) with TestRunnerException
@@ -19,13 +19,15 @@ case class CommandExecuted(cmd: String)
 case class CommandStdout(str: String)
 case class CommandStderr(str: String)
 case class MetricOutput(durations: List[Duration], jobName: String, source: String, threshold: Option[Int])
-case object Finished
+case class Finished(test: Option[TestsConfiguration])
 
 class TestRunnerActor extends Actor {
   def receive = {
     case Run(yamlStr, testId) =>
 
-      parseConfig(yamlStr) match {
+      val c = parseConfig(yamlStr)
+
+      c match {
         case Failure(ex: TestRunnerException) => sender ! ex
         case Failure(ex) => sender ! TestError(ex)
         case Success(config) =>
@@ -36,7 +38,7 @@ class TestRunnerActor extends Actor {
           }
       }
 
-      sender ! Finished
+      sender ! Finished(c.toOption)
       context.stop(self)
   }
 
