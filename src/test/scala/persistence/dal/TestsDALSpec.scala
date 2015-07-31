@@ -1,13 +1,13 @@
 package persistence.dal
 
-import org.specs2.time.NoTimeConversions
+import org.specs2.concurrent.ExecutionEnv
 import persistence.entities.Test
 import specUtils.BeforeAllAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class TestsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with NoTimeConversions {
+class TestsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
   sequential
 
   lazy val modules = new Modules {}
@@ -18,11 +18,11 @@ class TestsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with N
 
   "Tests DAL" should {
 
-    "no tests on get" in {
+    "no tests on get" in { implicit ee: ExecutionEnv =>
       modules.testsDal.getTests() must haveSize[Seq[Test]](0).await
     }
 
-    "return 1 on save" in {
+    "return 1 on save" in { implicit ee: ExecutionEnv =>
       modules.testsDal.save(Test(None, Some(1), "commit", Some("branch"), None, Some("dir"), None, None)) must beEqualTo(1).await
     }
 
@@ -39,18 +39,18 @@ class TestsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with N
       test.get.endDate must beNone
     }
 
-    "return no tests on bad get" in {
+    "return no tests on bad get" in { implicit ee: ExecutionEnv =>
       modules.testsDal.getTestById(2) must beNone.await
       modules.testsDal.getTestsByProjId(3) must haveSize[Seq[Test]](0).await
     }
 
-    "return 2 tests after inserting another one" in {
+    "return 2 tests after inserting another one" in { implicit ee: ExecutionEnv =>
       modules.testsDal.save(Test(None, Some(2), "commit", None, None, None, None, None)) must beEqualTo(2).await
       modules.testsDal.getTests() must haveSize[Seq[Test]](2).await
       modules.testsDal.getTestsByProjId(1) must haveSize[Seq[Test]](1).await
     }
 
-    "save returns the new id" in {
+    "save returns the new id" in { implicit ee: ExecutionEnv =>
       modules.testsDal.save(Test(None, Some(2), "commit", None, None, None, None, None)) must beEqualTo(3).await
       modules.testsDal.save(Test(None, Some(2), "commit", None, None, None, None, None)) must beEqualTo(4).await
     }

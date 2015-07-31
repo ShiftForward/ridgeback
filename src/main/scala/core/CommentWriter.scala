@@ -35,16 +35,16 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
         response <- commentWriter(prSource, jobComment, modules)
       } yield response
 
+      val name = s"${prSource.repoFullName}#${prSource.pullRequestId}"
       response onComplete {
         case Success(res) =>
-          val name = s"${prSource.repoFullName}#${prSource.pullRequestId}"
           if (res.status.isSuccess)
             logger.info(s"Write comment on $name status ${res.status}")
           else
             logger.error(s"Write comment on $name status ${res.status}")
           self ! PoisonPill
         case Failure(error) =>
-          logger.error(s"Failed to send comment for ${prSource.repoFullName}#${prSource.pullRequestId}", error)
+          logger.error(s"Failed to send comment for $name", error)
           self ! PoisonPill
       }
   }
@@ -95,5 +95,5 @@ object BitbucketCommentWriter extends CommentWriter {
   val actionBetter = ":green_heart:"
   val actionWorse = ":broken_heart:"
   val actionEqual = ":blue_heart:"
-  val actionUnknown = ":confused:"
+  val actionUnknown = ":grey_question:"
 }

@@ -1,13 +1,13 @@
 package persistence.dal
 
-import org.specs2.time.NoTimeConversions
+import org.specs2.concurrent.ExecutionEnv
 import persistence.entities.Job
 import specUtils.BeforeAllAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with NoTimeConversions {
+class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
   sequential
 
   lazy val modules = new Modules {}
@@ -18,7 +18,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
 
   "Jobs DAL" should {
 
-    "no jobs on get" in {
+    "no jobs on get" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](0).await
     }
 
@@ -37,7 +37,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
       job.get.durations === List(1.seconds, 2.seconds)
     }
 
-    "return no jobs on bad get" in {
+    "return no jobs on bad get" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.getJobById(2) must beNone.await
       modules.jobsDal.getJobsByTestId(3) must haveSize[Seq[Job]](0).await
     }

@@ -5,9 +5,11 @@ import com.typesafe.scalalogging.LazyLogging
 import core.ConsoleEventPublisher
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import persistence.dal.{ JobsDal, TestsDal, ProjectsDal }
-import spray.testkit.Specs2RouteTest
+import persistence.dal.{ JobsDal, ProjectsDal, TestsDal }
+import spray.testkit.{ RouteTest, Specs2Interface }
 import utils.{ ActorModule, ConfigurationModuleImpl, PersistenceModule }
+
+trait Specs2RouteTest extends RouteTest with Specs2Interface
 
 trait AbstractAPISpec extends Specification with Specs2RouteTest with Mockito {
 
