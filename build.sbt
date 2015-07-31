@@ -44,7 +44,7 @@ lazy val ridgeback = (project in file(".")).
         "io.spray"            %%  "spray-json"       % "1.3.2",
         "io.spray"            %%  "spray-routing"    % sprayV,
         "io.spray"            %%  "spray-testkit"    % sprayV  % "test",
-        "net.jcazevedo"       %%  "moultingyaml"     % "0.1-SNAPSHOT",
+        "net.jcazevedo"       %%  "moultingyaml"     % "0.1",
         "net.virtual-void"    %%  "json-lenses"      % "0.6.0",
         "org.apache.commons"  %   "commons-io"       % "1.3.2",
         "org.specs2"          %%  "specs2-core"      % specs2V % "test",
