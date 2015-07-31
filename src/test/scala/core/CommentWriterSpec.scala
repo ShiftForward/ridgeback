@@ -16,44 +16,78 @@ class TestCommentWriter extends CommentWriter {
     message = msg
     Future(new HttpResponse())
   }
+
+  val actionNew = "[new]"
+  val actionBetter = "[better]"
+  val actionWorse = "[worse]"
+  val actionEqual = "[equal]"
+  val actionUnknown = "[unknown]"
 }
 
 class CommentWriterSpec extends AbstractAPISpec {
-  sequential
 
   def actorRefFactory = system
 
-  val modules = new Modules {}
-
   "A CommentWriterActor" should {
-    "write comments" in new AkkaTestkitSpecs2Support {
+    "write comments" in {
+      "new jobs" in {
+        val proj = Project(Some(1), "name", "repo")
+        val testId = 1
+        val jobId = 1
+        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
+        val job1 = Job(Some(jobId), proj.id, Some(testId), "job", "source", List(1.seconds))
 
-      val proj = Project(Some(1), "name", "repo")
-      val testId = 1
-      val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
-      val commentWriter = new TestCommentWriter
+        val modules = new Modules {}
+        modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(job1))
+        modules.jobsDal.getPastJobs(job1) returns Future(Seq())
 
-      modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(Job(Some(1), proj.id, Some(testId), "job", "source", List(1.seconds))))
+        val commentWriter = new TestCommentWriter
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
+        actor ! SendComment(proj, testId, prSource)
 
-      val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
-      actor ! SendComment(proj, testId, prSource)
+        commentWriter.message must contain(commentWriter.actionNew).eventually
+      }
 
-      commentWriter.message.nonEmpty must be_==(true).eventually
-    }
+      "jobs with worse past job" in {
+        val proj = Project(Some(2), "name", "repo")
+        val testId = 2
+        val jobId = 2
+        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
+        val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", List(3.seconds))
+        val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", List(2.seconds))
+        val job3 = Job(Some(jobId + 2), proj.id, Some(testId + 2), "job", "source", List(4.seconds))
 
-    "write comments with min and max info" in new AkkaTestkitSpecs2Support {
+        val modules = new Modules {}
+        modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(job1))
+        modules.jobsDal.getPastJobs(job1) returns Future(Seq(job3, job2))
 
-      val proj = Project(Some(1), "name", "repo")
-      val testId = 1
-      val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
-      val commentWriter = new TestCommentWriter
+        val commentWriter = new TestCommentWriter
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
+        actor ! SendComment(proj, testId, prSource)
 
-      modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(Job(Some(1), proj.id, Some(testId), "job", "source", List(4.seconds, 2.seconds))))
+        commentWriter.message must contain(commentWriter.actionBetter).eventually
+      }
 
-      val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
-      actor ! SendComment(proj, testId, prSource)
+      "jobs with best past job" in {
+        val proj = Project(Some(3), "name", "repo")
+        val testId = 5
+        val jobId = 5
+        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
 
-      commentWriter.message must =~("3 seconds \\(min: 2 seconds, max: 4 seconds\\)").eventually
+        val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", List(3.seconds))
+        val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", List(4.seconds))
+        val job3 = Job(Some(jobId + 2), proj.id, Some(testId + 2), "job", "source", List(2.seconds))
+
+        val modules = new Modules {}
+        modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(job1))
+        modules.jobsDal.getPastJobs(job1) returns Future(Seq(job3, job2))
+
+        val commentWriter = new TestCommentWriter
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
+        actor ! SendComment(proj, testId, prSource)
+
+        commentWriter.message must contain(commentWriter.actionWorse).eventually
+      }
     }
   }
 }

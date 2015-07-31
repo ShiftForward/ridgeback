@@ -1,13 +1,12 @@
 package core
 
-import akka.actor.{ Actor, ActorRefFactory }
+import akka.actor.{ PoisonPill, Actor, ActorRefFactory }
 import com.typesafe.scalalogging.LazyLogging
-import persistence.entities.{ Project, PullRequestPayload }
+import persistence.entities.{ Job, Project, PullRequestPayload }
 import spray.client.pipelining._
 import spray.http.{ BasicHttpCredentials, HttpRequest, _ }
-import utils.{ Configuration, PersistenceModule }
+import utils._
 
-import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
@@ -16,6 +15,12 @@ case class SendComment(proj: Project, testId: Int, prSource: PullRequestPayload)
 trait CommentWriter {
   def apply(prSource: PullRequestPayload, msg: String, modules: Configuration)(implicit refFactory: ActorRefFactory,
                                                                                ec: ExecutionContext): Future[HttpResponse]
+
+  def actionNew: String
+  def actionBetter: String
+  def actionWorse: String
+  def actionEqual: String
+  def actionUnknown: String
 }
 
 class CommentWriterActor(modules: Configuration with PersistenceModule, commentWriter: CommentWriter) extends Actor with LazyLogging {
@@ -23,37 +28,54 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
 
   def receive: Receive = {
     case SendComment(proj, testId, prSource) =>
-      modules.jobsDal.getJobsByTestId(testId) onComplete {
-        case Success(jobs) =>
-          val strBuilder = new StringBuilder
-          jobs.foreach { job =>
-            job.durations match {
-              case ds if ds.length == 1 => strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took ${job.durations.head}\n\n")
-              case ds if ds.isEmpty => strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) had no output\n\n")
-              case ds =>
-                val avg = Duration(job.durations.map(_.toMillis).sum / job.durations.length, MILLISECONDS).toCoarsest
-                strBuilder.append(s"- Job ${job.jobName} (${job.id.get}) took in average $avg (min: ${ds.min}, max: ${ds.max})\n\n")
-            }
-          }
 
-          val response = commentWriter(prSource, strBuilder.toString(), modules)
+      val response = for {
+        jobs <- modules.jobsDal.getJobsByTestId(testId)
+        jobComment <- Future.sequence(jobs.map(buildComment(_, commentWriter))).map(_.mkString("\n\n"))
+        response <- commentWriter(prSource, jobComment, modules)
+      } yield response
 
-          response onComplete {
-            case Success(res: HttpResponse) =>
-              if (res.status.isSuccess)
-                logger.info(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
-              else
-                logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} status ${res.status}")
-              context.stop(self)
-            case Failure(error) =>
-              logger.error(s"Write comment on ${prSource.repoFullName}#${prSource.pullRequestId} failed", error)
-              context.stop(self)
-          }
-
+      val name = s"${prSource.repoFullName}#${prSource.pullRequestId}"
+      response onComplete {
+        case Success(res) =>
+          if (res.status.isSuccess)
+            logger.info(s"Write comment on $name status ${res.status}")
+          else
+            logger.error(s"Write comment on $name status ${res.status}")
+          self ! PoisonPill
         case Failure(error) =>
-          logger.error(s"Failed to get jobs of ${prSource.repoFullName}#${prSource.pullRequestId}", error)
-          context.stop(self)
+          logger.error(s"Failed to send comment for $name", error)
+          self ! PoisonPill
       }
+  }
+
+  def buildComment(job: Job, commentWriter: CommentWriter): Future[String] = {
+    import utils.RichDuration._
+
+    val description = s"${job.jobName} (${job.id.get})"
+    job.durations match {
+      case ds if ds.isEmpty => Future(s"- ${commentWriter.actionUnknown} Job $description had no output")
+      case ds =>
+        modules.jobsDal.getPastJobs(job).map { pastJobs =>
+          val pastMeanOpt = pastJobs.headOption
+            .map(j => MeanDurationStat(j.durations)).getOrElse(None)
+
+          val min = MinDurationStat(ds).get
+          val max = MaxDurationStat(ds).get
+          val mean = MeanDurationStat(ds).get
+
+          pastMeanOpt match {
+            case Some(pastMean) =>
+              val action = pastMean.compare(mean) match {
+                case c if c < 0 => commentWriter.actionWorse
+                case c if c > 0 => commentWriter.actionBetter
+                case _ => commentWriter.actionEqual
+              }
+              s"- $action Job $description took in average ${mean.toShortString} [${min.toShortString}, ${max.toShortString}] (before ${pastMeanOpt.get.toShortString})"
+            case None => s"- ${commentWriter.actionNew} Job $description took in average ${mean.toShortString} [${min.toShortString}, ${max.toShortString}]"
+          }
+        }
+    }
   }
 }
 
@@ -67,4 +89,10 @@ object BitbucketCommentWriter extends CommentWriter {
 
     pipeline(Post(url, FormData(Seq("content" -> msg))))
   }
+
+  val actionNew = ":new:"
+  val actionBetter = ":green_heart:"
+  val actionWorse = ":broken_heart:"
+  val actionEqual = ":blue_heart:"
+  val actionUnknown = ":grey_question:"
 }
