@@ -1,13 +1,13 @@
 package persistence.dal
 
-import org.specs2.time.NoTimeConversions
+import org.specs2.concurrent.ExecutionEnv
 import persistence.entities.Job
 import specUtils.BeforeAllAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with NoTimeConversions {
+class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
   sequential
 
   lazy val modules = new Modules {}
@@ -18,11 +18,11 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
 
   "Jobs DAL" should {
 
-    "no jobs on get" in {
+    "no jobs on get" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](0).await
     }
 
-    "return 1 on save" in {
+    "return 1 on save" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", List(1.seconds, 2.seconds))) must beEqualTo(1).await
     }
 
@@ -37,18 +37,18 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with No
       job.get.durations === List(1.seconds, 2.seconds)
     }
 
-    "return no jobs on bad get" in {
+    "return no jobs on bad get" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.getJobById(2) must beNone.await
       modules.jobsDal.getJobsByTestId(3) must haveSize[Seq[Job]](0).await
     }
 
-    "return 2 jobs after inserting another one" in {
+    "return 2 jobs after inserting another one" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", List(1.seconds))) must beEqualTo(2).await
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](2).await
       modules.jobsDal.getJobsByTestId(1) must haveSize[Seq[Job]](2).await
     }
 
-    "getJobsByTestId filters properly" in {
+    "getJobsByTestId filters properly" in { implicit ee: ExecutionEnv =>
       modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.1", "source", List(1.seconds))) must beEqualTo(3).await
       modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.2", "source", List(1.seconds))) must beEqualTo(4).await
       modules.jobsDal.save(Job(None, Some(1), Some(3), "name3.1", "source", List(1.seconds))) must beEqualTo(5).await

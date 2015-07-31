@@ -29,7 +29,7 @@ lazy val ridgeback = (project in file(".")).
     libraryDependencies ++= {
       val akkaV = "2.3.12"
       val sprayV = "1.3.3"
-      val specs2V = "2.4.17"
+      val specs2V = "3.6.4"
       Seq(
         "ch.qos.logback"      %   "logback-classic"  % "1.1.3",
         "com.gettyimages"     %%  "spray-swagger"    % "0.5.1",
@@ -43,13 +43,13 @@ lazy val ridgeback = (project in file(".")).
         "io.spray"            %%  "spray-client"     % sprayV,
         "io.spray"            %%  "spray-json"       % "1.3.2",
         "io.spray"            %%  "spray-routing"    % sprayV,
-        "io.spray"            %%  "spray-testkit"    % sprayV  % "test",
+        "io.spray"            %%  "spray-testkit"    % sprayV  % "test" exclude("org.specs2", "specs2_2.11"),
         "net.jcazevedo"       %%  "moultingyaml"     % "0.1",
         "net.virtual-void"    %%  "json-lenses"      % "0.6.0",
         "org.apache.commons"  %   "commons-io"       % "1.3.2",
         "org.specs2"          %%  "specs2-core"      % specs2V % "test",
         "org.specs2"          %%  "specs2-mock"      % specs2V % "test",
-        "org.xerial"          %   "sqlite-jdbc"      % "3.8.10.1"
+        "org.xerial"          %   "sqlite-jdbc"      % "3.8.11"
       )
     }
   )

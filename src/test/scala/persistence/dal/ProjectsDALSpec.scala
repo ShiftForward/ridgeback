@@ -1,13 +1,13 @@
 package persistence.dal
 
-import org.specs2.time.NoTimeConversions
+import org.specs2.concurrent.ExecutionEnv
 import persistence.entities.Project
 import specUtils.BeforeAllAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class ProjectsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll with NoTimeConversions {
+class ProjectsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
   sequential
 
   lazy val modules = new Modules {}
@@ -18,7 +18,7 @@ class ProjectsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll wit
 
   "Project DAL" should {
 
-    "return 1 on save" in {
+    "return 1 on save" in { implicit ee: ExecutionEnv =>
       modules.projectsDal.save(Project(None, "projName", "gitRepo")) must beEqualTo(1).await
     }
 
@@ -29,11 +29,11 @@ class ProjectsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll wit
       project.get.gitRepo === "gitRepo"
     }
 
-    "return no projects on bad get" in {
+    "return no projects on bad get" in { implicit ee: ExecutionEnv =>
       modules.projectsDal.getProjectById(2) must beNone.await
     }
 
-    "return 2 projects after inserting another one" in {
+    "return 2 projects after inserting another one" in { implicit ee: ExecutionEnv =>
       modules.projectsDal.save(Project(None, "projName", "gitRepo")) must beEqualTo(2).await
       modules.projectsDal.getProjects() must haveSize[Seq[Project]](2).await
     }

@@ -1,7 +1,6 @@
 package core
 
 import org.specs2.mutable._
-import org.specs2.time.NoTimeConversions
 import akka.actor._
 import akka.testkit._
 import scala.concurrent.duration._
@@ -12,7 +11,7 @@ abstract class AkkaTestkitSpecs2Support extends TestKit(ActorSystem()) with Afte
   def after = system.shutdown()
 }
 
-class TestRunnerActorSpec extends Specification with NoTimeConversions {
+class TestRunnerActorSpec extends Specification {
 
   "A TestRunnerActor" should {
     "execute commands in order" in new AkkaTestkitSpecs2Support {
