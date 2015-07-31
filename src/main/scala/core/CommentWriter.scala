@@ -67,7 +67,7 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
           pastMeanOpt match {
             case Some(pastMean) =>
               val defaultThreshold = modules.config.getInt("worker.defaultThreshold")
-              val action = pastMean.compareThresh(mean, job.threshold.getOrElse(defaultThreshold)) match {
+              val action = pastMean.compareWithThreshold(mean, job.threshold.getOrElse(defaultThreshold)) match {
                 case c if c < 0 => commentWriter.actionWorse
                 case c if c > 0 => commentWriter.actionBetter
                 case _ => commentWriter.actionEqual

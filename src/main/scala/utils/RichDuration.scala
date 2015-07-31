@@ -27,7 +27,7 @@ object RichDuration {
         }
     }
 
-    def compareThresh(otherDur: Duration, thresh: Int): Int = {
+    def compareWithThreshold(otherDur: Duration, thresh: Int): Int = {
       def inThreshold = Math.abs((dur - otherDur) / otherDur) * 100 <= thresh
 
       dur.compare(otherDur) match {
