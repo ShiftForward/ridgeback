@@ -2,7 +2,6 @@ package core
 
 import akka.actor._
 import api.AbstractAPISpec
-import org.specs2.time.NoTimeConversions
 import persistence.entities.{ PullRequestPayload, Job, Project }
 import spray.http.HttpResponse
 import utils.Configuration
@@ -19,7 +18,7 @@ class TestCommentWriter extends CommentWriter {
   }
 }
 
-class CommentWriterSpec extends AbstractAPISpec with NoTimeConversions {
+class CommentWriterSpec extends AbstractAPISpec {
   sequential
 
   def actorRefFactory = system
