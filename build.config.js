@@ -63,6 +63,7 @@ module.exports = {
   vendor_files: {
     js: [
       'vendor/jquery/dist/jquery.js',
+      'vendor/lodash/lodash.js',
       'vendor/angular/angular.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/placeholders/angular-placeholders-0.0.1-SNAPSHOT.min.js',
@@ -70,11 +71,15 @@ module.exports = {
       'vendor/angular-ui-utils/modules/route/route.js',
       'vendor/metisMenu/dist/metisMenu.js',
       'vendor/raphael/raphael.js',
-      'vendor/morrisjs/morris.js'
+      'vendor/morrisjs/morris.js',
+      'vendor/restangular/dist/restangular.js',
+      'vendor/sweetalert/dist/sweetalert-dev.js',
+      'vendor/angular-sweetalert/SweetAlert.js'
     ],
     css: [
       'vendor/metisMenu/dist/metisMenu.css',
-      'vendor/morrisjs/morris.css'
+      'vendor/morrisjs/morris.css',
+      'vendor/sweetalert/dist/sweetalert.css'
     ],
     assets: [
     ]

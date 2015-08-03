@@ -8,7 +8,9 @@
     "angular-bootstrap": "~0.10.0",
     "angular-ui-router": "~0.2",
     "metisMenu": "~2.0.3",
-    "morrisjs": "~0.5.1"
+    "morrisjs": "~0.5.1",
+    "restangular": "~1.5.1",
+    "angular-sweetalert": "~1.1.0"
   },
   "dependencies": {}
 }

@@ -1,0 +1,29 @@
+<div class="input-group">
+    <span class="input-group-addon"><i class="fa fa-link"> </i></span>
+    <input type="url" class="form-control" placeholder="Github/Bitbucket link" ng-model="link" ng-change="linkChange()">
+</div>
+
+<hr>
+
+<form name="inputForm" novalidate role="form" class="form-horizontal" ng-submit="submitForm(inputForm.$valid)">
+    <div class="form-group" ng-class="{ 'has-error' : inputForm.inputName.$invalid && inputForm.inputName.$pristine }">
+        <label for="inputName" class="col-sm-1 control-label">Name</label>
+        <div class="col-sm-9">
+            <input type="text" class="form-control" ng-model="input.name" id="inputName" name="inputName" required placeholder="Name">
+            <p ng-show="inputForm.inputName.$invalid && !inputForm.inputName.$pristine" class="help-block">Project name is required.</p>
+        </div>
+    </div>
+    <div class="form-group" ng-class="{ 'has-error' : inputForm.inputUrl.$invalid && inputForm.inputUrl.$pristine }">
+        <label for="inputUrl" class="col-sm-1 control-label">Git URL</label>
+        <div class="col-sm-9">
+            <input type="text" class="form-control" ng-model="input.url" id="inputUrl" name="inputUrl" required placeholder="URL">
+            <p ng-show="inputForm.inputUrl.$invalid && !inputForm.inputUrl.$pristine" class="help-block">Project Git URL is required.</p>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-offset-1 col-sm-9">
+            <button ng-show="!creatingProject" type="submit" class="btn btn-primary">Create Project</button>
+            <button ng-show="creatingProject" class="btn btn-primary"><i class="fa fa-spinner fa-spin"></i></button>
+        </div>
+    </div>
+</form>

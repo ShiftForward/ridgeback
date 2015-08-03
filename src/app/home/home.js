@@ -14,7 +14,8 @@
  */
 angular.module( 'ngBoilerplate.home', [
   'ui.router',
-  'plusOne'
+  'restangular',
+  'oitozero.ngSweetAlert'
 ])
 
 /**
@@ -23,23 +24,25 @@ angular.module( 'ngBoilerplate.home', [
  * this way makes each module more "self-contained".
  */
 .config(function config( $stateProvider ) {
-  $stateProvider.state( 'home', {
+  $stateProvider.state('home', {
     url: '/home',
-    views: {
-      "main": {
-        controller: 'HomeCtrl',
-        templateUrl: 'home/home.tpl.html'
-      }
-    },
-    data:{ pageTitle: 'Home' }
+    templateUrl: 'home/home.tpl.html',
+    // abstract: true,
+    data: {pageTitle: 'Home'}
   });
 })
 
 /**
  * And of course we define a controller for our route.
  */
-.controller( 'HomeCtrl', function HomeController( $scope ) {
-})
+.controller( 'HomeCtrl', function HomeController($scope, $rootScope, Restangular, SweetAlert) {
+  $scope.loadingProjects = true;
+  $rootScope.projects = [];
 
-;
-
+  Restangular.all('projects').getList().then(function (projects) {
+    $scope.loadingProjects = false;
+    $rootScope.projects = projects;
+  }, function (err) {
+    SweetAlert.error('Error', JSON.stringify(err));
+  });
+});
