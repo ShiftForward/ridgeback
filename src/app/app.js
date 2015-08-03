@@ -2,7 +2,7 @@ angular.module('ngBoilerplate', [
   'templates-app',
   'templates-common',
   'ngBoilerplate.home',
-  'ngBoilerplate.about',
+  'ngBoilerplate.dashboard',
   'ngBoilerplate.createProject',
   'ngBoilerplate.projects',
   'ui.router',
@@ -10,7 +10,7 @@ angular.module('ngBoilerplate', [
 ])
 
 .config(function myAppConfig ($stateProvider, $urlRouterProvider, $httpProvider, RestangularProvider) {
-  $urlRouterProvider.otherwise('/home');
+  $urlRouterProvider.otherwise('/dashboard');
 
   RestangularProvider.setBaseUrl('http://localhost:8080');
 })

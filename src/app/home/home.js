@@ -25,9 +25,8 @@ angular.module( 'ngBoilerplate.home', [
  */
 .config(function config( $stateProvider ) {
   $stateProvider.state('home', {
-    url: '/home',
     templateUrl: 'home/home.tpl.html',
-    // abstract: true,
+    abstract: true,
     data: {pageTitle: 'Home'}
   });
 })
