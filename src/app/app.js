@@ -5,6 +5,7 @@ angular.module('ngBoilerplate', [
   'ngBoilerplate.dashboard',
   'ngBoilerplate.createProject',
   'ngBoilerplate.projects',
+  'ui.bootstrap',
   'ui.router',
   'restangular'
 ])
