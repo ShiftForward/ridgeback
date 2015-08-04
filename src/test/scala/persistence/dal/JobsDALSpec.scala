@@ -23,7 +23,7 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
     }
 
     "return 1 on save" in { implicit ee: ExecutionEnv =>
-      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", List(1.seconds, 2.seconds))) must beEqualTo(1).await
+      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", None, List(1.seconds, 2.seconds))) must beEqualTo(1).await
     }
 
     "return valid job on get" in {
@@ -43,28 +43,28 @@ class JobsDALSpec extends AbstractPersistenceSpec with BeforeAllAfterAll {
     }
 
     "return 2 jobs after inserting another one" in { implicit ee: ExecutionEnv =>
-      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", List(1.seconds))) must beEqualTo(2).await
+      modules.jobsDal.save(Job(None, Some(1), Some(1), "name", "source", None, List(1.seconds))) must beEqualTo(2).await
       modules.jobsDal.getJobs() must haveSize[Seq[Job]](2).await
       modules.jobsDal.getJobsByTestId(1) must haveSize[Seq[Job]](2).await
     }
 
     "getJobsByTestId filters properly" in { implicit ee: ExecutionEnv =>
-      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.1", "source", List(1.seconds))) must beEqualTo(3).await
-      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.2", "source", List(1.seconds))) must beEqualTo(4).await
-      modules.jobsDal.save(Job(None, Some(1), Some(3), "name3.1", "source", List(1.seconds))) must beEqualTo(5).await
+      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.1", "source", None, List(1.seconds))) must beEqualTo(3).await
+      modules.jobsDal.save(Job(None, Some(1), Some(2), "name2.2", "source", None, List(1.seconds))) must beEqualTo(4).await
+      modules.jobsDal.save(Job(None, Some(1), Some(3), "name3.1", "source", None, List(1.seconds))) must beEqualTo(5).await
 
       modules.jobsDal.getJobsByTestId(2) must haveSize[Seq[Job]](2).await
       modules.jobsDal.getJobsByTestId(3) must haveSize[Seq[Job]](1).await
       modules.jobsDal.getJobsByTestId(4) must haveSize[Seq[Job]](0).await
     }
 
-    "return past jobs" in {
+    "return past jobs" in { implicit ee: ExecutionEnv =>
       val jobIds = Await.result(for {
-        jobId1 <- modules.jobsDal.save(Job(None, Some(5), Some(1), "name", "source", List(1.seconds)))
-        jobId2 <- modules.jobsDal.save(Job(None, Some(5), Some(2), "name", "source", List(2.seconds)))
-        jobId3 <- modules.jobsDal.save(Job(None, Some(6), Some(2), "name", "source", List(2.seconds)))
-        jobId4 <- modules.jobsDal.save(Job(None, Some(5), Some(3), "name2", "source", List(3.seconds)))
-        jobId5 <- modules.jobsDal.save(Job(None, Some(5), Some(3), "name", "source", List(3.seconds)))
+        jobId1 <- modules.jobsDal.save(Job(None, Some(5), Some(1), "name", "source", None, List(1.seconds)))
+        jobId2 <- modules.jobsDal.save(Job(None, Some(5), Some(2), "name", "source", None, List(2.seconds)))
+        jobId3 <- modules.jobsDal.save(Job(None, Some(6), Some(2), "name", "source", None, List(2.seconds)))
+        jobId4 <- modules.jobsDal.save(Job(None, Some(5), Some(3), "name2", "source", None, List(3.seconds)))
+        jobId5 <- modules.jobsDal.save(Job(None, Some(5), Some(3), "name", "source", None, List(3.seconds)))
       } yield (jobId1, jobId2, jobId3, jobId4, jobId5), 5.seconds)
 
       val jobs = Await.result(for {

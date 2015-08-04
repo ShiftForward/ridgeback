@@ -9,6 +9,7 @@ case class Job(
   testId: Option[Int],
   jobName: String,
   source: String,
+  threshold: Option[Int],
   durations: List[Duration])
 
 case class SimpleJob(
@@ -16,6 +17,7 @@ case class SimpleJob(
   testId: Option[Int],
   jobName: String,
   source: String,
+  threshold: Option[Int],
   durations: List[Duration])
 
 trait Jobs extends Profile {
@@ -33,9 +35,10 @@ trait Jobs extends Profile {
     def testId = column[Int]("testId")
     def jobName = column[String]("jobName")
     def source = column[String]("source")
+    def threshold = column[Option[Int]]("threshold")
     def durations = column[List[Duration]]("values")
 
-    def * = (id.?, projId.?, testId.?, jobName, source, durations) <> (Job.tupled, Job.unapply)
+    def * = (id.?, projId.?, testId.?, jobName, source, threshold, durations) <> (Job.tupled, Job.unapply)
     // def project = foreignKey("job_project", projId, projectsTable)(_.id, onDelete = ForeignKeyAction.Cascade)
     // def test = foreignKey("job_test", testId, testsTable)(_.id, onDelete = ForeignKeyAction.Cascade)
   }

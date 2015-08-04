@@ -59,9 +59,9 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
     case CommandFailed(cmd, exitCode, jobName) => modules.publish(project.name, testId, EventType.CmdFailed, s"$cmd ($exitCode)")
     case CommandStdout(str) => modules.publish(project.name, testId, EventType.Stdout, str)
     case CommandStderr(str) => modules.publish(project.name, testId, EventType.Stderr, str)
-    case MetricOutput(durations, jobName, source) =>
+    case MetricOutput(durations, jobName, source, threshold) =>
       modules.publish(project.name, testId, EventType.Metric, durations.map(d => d.toMillis).mkString(","))
-      Await.result(modules.jobsDal.save(Job(None, project.id, Some(testId), jobName, source, durations)), 5.seconds)
+      Await.result(modules.jobsDal.save(Job(None, project.id, Some(testId), jobName, source, threshold, durations)), 5.seconds)
     case InvalidOutput(cmd, jobName) => modules.publish(project.name, testId, EventType.InvalidOutput, cmd)
     case Finished =>
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())

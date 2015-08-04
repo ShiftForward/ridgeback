@@ -35,7 +35,7 @@ class CommentWriterSpec extends AbstractAPISpec {
         val testId = 1
         val jobId = 1
         val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
-        val job1 = Job(Some(jobId), proj.id, Some(testId), "job", "source", List(1.seconds))
+        val job1 = Job(Some(jobId), proj.id, Some(testId), "job", "source", None, List(1.seconds))
 
         val modules = new Modules {}
         modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(job1))
@@ -53,9 +53,9 @@ class CommentWriterSpec extends AbstractAPISpec {
         val testId = 2
         val jobId = 2
         val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
-        val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", List(3.seconds))
-        val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", List(2.seconds))
-        val job3 = Job(Some(jobId + 2), proj.id, Some(testId + 2), "job", "source", List(4.seconds))
+        val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", None, List(3.seconds))
+        val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", None, List(2.seconds))
+        val job3 = Job(Some(jobId + 2), proj.id, Some(testId + 2), "job", "source", None, List(4.seconds))
 
         val modules = new Modules {}
         modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(job1))
@@ -74,9 +74,9 @@ class CommentWriterSpec extends AbstractAPISpec {
         val jobId = 5
         val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
 
-        val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", List(3.seconds))
-        val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", List(4.seconds))
-        val job3 = Job(Some(jobId + 2), proj.id, Some(testId + 2), "job", "source", List(2.seconds))
+        val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", None, List(3.seconds))
+        val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", None, List(4.seconds))
+        val job3 = Job(Some(jobId + 2), proj.id, Some(testId + 2), "job", "source", None, List(2.seconds))
 
         val modules = new Modules {}
         modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(job1))
@@ -87,6 +87,27 @@ class CommentWriterSpec extends AbstractAPISpec {
         actor ! SendComment(proj, testId, prSource)
 
         commentWriter.message must contain(commentWriter.actionWorse).eventually
+      }
+
+      "jobs in threshold" in {
+        val proj = Project(Some(4), "name", "repo")
+        val testId = 7
+        val jobId = 7
+        val prSource = PullRequestPayload("comment", "tests", "repo", "commit", "branch", 1)
+
+        val job1 = Job(Some(jobId + 0), proj.id, Some(testId + 0), "job", "source", Some(50), List(3.seconds))
+        val job2 = Job(Some(jobId + 1), proj.id, Some(testId + 1), "job", "source", Some(10), List(4.seconds))
+        val job3 = Job(Some(jobId + 2), proj.id, Some(testId + 2), "job", "source", Some(10), List(2.seconds))
+
+        val modules = new Modules {}
+        modules.jobsDal.getJobsByTestId(testId) returns Future(Seq(job1))
+        modules.jobsDal.getPastJobs(job1) returns Future(Seq(job3, job2))
+
+        val commentWriter = new TestCommentWriter
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
+        actor ! SendComment(proj, testId, prSource)
+
+        commentWriter.message must contain(commentWriter.actionEqual).eventually
       }
     }
   }
