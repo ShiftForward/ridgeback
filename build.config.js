@@ -77,7 +77,9 @@ module.exports = {
       'vendor/sweetalert/dist/sweetalert-dev.js',
       'vendor/angular-sweetalert/SweetAlert.js',
       'vendor/angular-datatables/dist/angular-datatables.js',
-      'vendor/angular-datatables/dist/plugins/bootstrap/angular-datatables.bootstrap.js'
+      'vendor/angular-datatables/dist/plugins/bootstrap/angular-datatables.bootstrap.js',
+      'vendor/moment/moment.js',
+      'vendor/angular-moment/angular-moment.js'
     ],
     css: [
       'vendor/metisMenu/dist/metisMenu.css',

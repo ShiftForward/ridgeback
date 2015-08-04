@@ -36,8 +36,8 @@
                 <th>Commit</th>
                 <th>Branch</th>
                 <th>PR Id</th>
-                <th>Start Date</th>
-                <th>End Date</th>
+                <th>Date</th>
+                <th>Duration</th>
               </tr>
               </thead>
               <tbody>
@@ -49,8 +49,10 @@
                     class="fa fa-external-link"></i></a></td>
                 <td><a target="_blank" ng-href="https://{{project.url}}/pull-requests/{{test.prId}}">{{test.prId}} <i
                     class="fa fa-external-link"></i></a></td>
-                <td>{{test.startDate | date:'medium'}}</td>
-                <td>{{test.endDate | date:'medium'}}</td>
+                <td><span am-time-ago="test.startDate" title="{{test.startDate | date: 'medium'}}"></span></td>
+                <td title="{{durationDiff(test.startDate, test.endDate) | amDurationFormat : 'milliseconds' }}">
+                  {{test.endDate | amDifference : test.startDate : 'milliseconds' }} milliseconds
+                </td>
               </tr>
               </tbody>
             </table>

@@ -2,7 +2,8 @@ angular.module('ngBoilerplate.projects', [
   'ui.router',
   'restangular',
   'oitozero.ngSweetAlert',
-  'datatables'
+  'datatables',
+  'angularMoment'
 ]).config(function config($stateProvider) {
   $stateProvider.state('home.projects', {
     url: '/projects/:id',
@@ -10,7 +11,8 @@ angular.module('ngBoilerplate.projects', [
     templateUrl: 'projects/projects.tpl.html',
     data: {pageTitle: 'Projects'}
   });
-}).controller('ProjectsCtrl', function ProjectsController($scope, $stateParams, Restangular, SweetAlert) {
+}).controller('ProjectsCtrl', function ProjectsController($scope, $stateParams, Restangular, SweetAlert,
+                                                          DTOptionsBuilder, DTColumnBuilder) {
 
   var regex = /.*(bitbucket\.org|github\.com):([A-Za-z0-9\-_\.]+)\/([A-Za-z0-9\-_\.]+).git.*/g;
 
@@ -33,4 +35,9 @@ angular.module('ngBoilerplate.projects', [
   });
 
   $scope.tests = Restangular.all('tests').getList({ 'projId': $stateParams.id}).$object;
+
+  $scope.durationDiff = function (start, end) {
+    var duration = moment.duration(moment(end).diff(moment(start)));
+    return duration.asMilliseconds();
+  };
 });
