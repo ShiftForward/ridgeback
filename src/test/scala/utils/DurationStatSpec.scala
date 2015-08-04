@@ -3,9 +3,8 @@ package utils
 import scala.concurrent.duration._
 
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
 
-class DurationStatSpec extends Specification with NoTimeConversions {
+class DurationStatSpec extends Specification {
 
   "A DurationStat" should {
     "calculate the minimum duration" in {
