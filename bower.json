@@ -10,7 +10,11 @@
     "metisMenu": "~2.0.3",
     "morrisjs": "~0.5.1",
     "restangular": "~1.5.1",
-    "angular-sweetalert": "~1.1.0"
+    "angular-sweetalert": "~1.1.0",
+    "angular-datatables": "~0.4.3"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "resolutions": {
+    "angular": "~1.2"
+  }
 }

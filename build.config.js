@@ -64,6 +64,7 @@ module.exports = {
     js: [
       'vendor/jquery/dist/jquery.js',
       'vendor/lodash/lodash.js',
+      'vendor/datatables/media/js/jquery.dataTables.js',
       'vendor/angular/angular.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/placeholders/angular-placeholders-0.0.1-SNAPSHOT.min.js',
@@ -74,14 +75,20 @@ module.exports = {
       'vendor/morrisjs/morris.js',
       'vendor/restangular/dist/restangular.js',
       'vendor/sweetalert/dist/sweetalert-dev.js',
-      'vendor/angular-sweetalert/SweetAlert.js'
+      'vendor/angular-sweetalert/SweetAlert.js',
+      'vendor/angular-datatables/dist/angular-datatables.js',
+      'vendor/angular-datatables/dist/plugins/bootstrap/angular-datatables.bootstrap.js'
     ],
     css: [
       'vendor/metisMenu/dist/metisMenu.css',
       'vendor/morrisjs/morris.css',
-      'vendor/sweetalert/dist/sweetalert.css'
+      'vendor/sweetalert/dist/sweetalert.css',
+      'vendor/datatables/media/css/jquery.dataTables.css',
+      'vendor/angular-datatables/dist/plugins/bootstrap/datatables.bootstrap.css'
     ],
-    assets: [
-    ]
-  },
+    images: [
+      'vendor/datatables/media/images/*.png'
+    ],
+    assets: []
+  }
 };

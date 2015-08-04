@@ -1,0 +1,59 @@
+<div class="row">
+  <div class="col-md-12">
+    <h1 class="page-header">
+      {{project.name}}
+      <small>
+        project
+      </small>
+      <small class="pull-right">
+        <a href="https://{{project.url}}" title="Repository on {{project.providerName}}"><i
+            class="fa fa-{{project.providerName}}"></i></a>
+      </small>
+    </h1>
+  </div>
+</div>
+
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <tabset>
+          <tab heading="Status">
+            <br>
+            Justified content
+          </tab>
+          <tab heading="Current Build">
+            <br>
+            Justified content
+          </tab>
+          <tab heading="Tests">
+            <br>
+            <table datatable="ng" class="row-border hover">
+              <thead>
+              <tr>
+                <th>Test Id</th>
+                <th>Commit</th>
+                <th>Branch</th>
+                <th>PR Id</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr ng-repeat="test in tests"> <!-- change to ::tests on Angular 1.3 -->
+                <td>{{test.id}}</td>
+                <td><a ng-href="https://{{project.url}}/commits/{{test.commit}}">{{test.commit}} <i class="fa fa-external-link"></i></a></td>
+                <td><a ng-href="https://{{project.url}}/branch/{{test.branch}}">{{test.branch}} <i class="fa fa-external-link"></i></a></td>
+                <td><a ng-href="https://{{project.url}}/pull-requests/{{test.prId}}">{{test.prId}} <i class="fa fa-external-link"></i></a></td>
+                <td>{{test.startDate | date:'medium'}}</td>
+                <td>{{test.endDate | date:'medium'}}</td>
+              </tr>
+              </tbody>
+            </table>
+          </tab>
+        </tabset>
+      </div>
+    </div>
+  </div>
+</div>
