@@ -22,7 +22,7 @@
     </div>
     <div class="form-group">
         <div class="col-sm-offset-1 col-sm-9">
-            <button ng-show="!creatingProject" type="submit" class="btn btn-primary">Create Project</button>
+            <button ng-show="!creatingProject" ng-disabled="inputForm.$invalid" type="submit" class="btn btn-primary">Create Project</button>
             <button ng-show="creatingProject" class="btn btn-primary"><i class="fa fa-spinner fa-spin"></i></button>
         </div>
     </div>
