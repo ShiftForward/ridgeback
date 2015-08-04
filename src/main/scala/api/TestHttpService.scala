@@ -1,11 +1,13 @@
 package api
 
+import javax.ws.rs.Path
+
 import akka.util.Timeout
 import com.wordnik.swagger.annotations._
+import core.EventPublisherModule
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
-import spray.http._
 import spray.httpx.SprayJsonSupport
 import spray.routing._
 import utils.{ Configuration, PersistenceModule }
@@ -15,7 +17,7 @@ import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
 @Api(value = "/tests", description = "Operations about tests")
-abstract class TestHttpService(modules: Configuration with PersistenceModule) extends HttpService {
+abstract class TestHttpService(modules: Configuration with PersistenceModule with EventPublisherModule) extends HttpService {
 
   import JsonProtocol._
   import SprayJsonSupport._
@@ -29,7 +31,7 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Ok"),
     new ApiResponse(code = 404, message = "Not Found")))
-  def TestGetRoute = path("tests" / IntNumber) { (testId) =>
+  def TestGetRoute = path("tests" / IntNumber) { testId =>
     get {
       respondWithMediaType(`application/json`) {
         onComplete(modules.testsDal.getTestById(testId)) {
@@ -62,6 +64,30 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
               }
             }
           }
+        }
+      }
+    }
+  }
+
+  @Path("/{testId}/pastEvents")
+  @ApiOperation(httpMethod = "GET", response = classOf[Seq[(String, String)]], value = "Returns past events of an event")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "testId", required = true, dataType = "integer", paramType = "path", value = "ID of test that needs to be fetched")))
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Ok"),
+    new ApiResponse(code = 404, message = "Not Found")))
+  def TestPastEventsGetRoute = path("tests" / IntNumber / "pastEvents") { testId =>
+    get {
+      respondWithMediaType(`application/json`) {
+        onComplete(modules.testsDal.getTestById(testId)) {
+          case Success(Some(test)) =>
+            onComplete(modules.projectsDal.getProjectById(test.projId.getOrElse(0))) {
+              case Success(Some(proj)) => complete(modules.getPastEvents(s"${proj.name}-$testId"))
+              case Success(None) => complete(NotFound, test.projId.getOrElse(0).toString)
+              case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+            }
+          case Success(None) => complete(NotFound, testId.toString)
+          case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
         }
       }
     }

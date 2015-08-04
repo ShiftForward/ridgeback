@@ -52,7 +52,7 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
 
   def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
     projects.ProjectTriggerRoute ~ projects.ProjectTriggerRouteBB ~
-    tests.TestGetRoute ~ tests.TestsGetRoute ~
+    tests.TestGetRoute ~ tests.TestsGetRoute ~ tests.TestPastEventsGetRoute ~
     swaggerService.routes ~
     get {
       pathPrefix("") {
