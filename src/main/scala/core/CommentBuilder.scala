@@ -58,7 +58,7 @@ object CommentBuilder {
   private def keywordToString(keyword: String, job: Job,
                               prevJobs: Seq[Job],
                               commentWriter: CommentWriter, modules: Configuration): String = {
-    println("keyword: " + keyword)
+    // TODO: create a Keyword trait and implement convertToString for each keyword
     keyword match {
       case "id" => job.id.getOrElse(0).toString
       case "name" => job.jobName
