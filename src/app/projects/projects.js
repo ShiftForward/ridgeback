@@ -15,7 +15,7 @@ angular.module('ngBoilerplate.projects', [
     data: {pageTitle: 'Projects'}
   });
 }).controller('ProjectsCtrl', function ProjectsController($scope, $stateParams, Restangular, SweetAlert,
-                                                          $pusher) {
+                                                          $pusher, DTOptionsBuilder) {
 
   var regex = /.*(bitbucket\.org|github\.com):([A-Za-z0-9\-_\.]+)\/([A-Za-z0-9\-_\.]+).git.*/g;
 
@@ -52,6 +52,10 @@ angular.module('ngBoilerplate.projects', [
 
   $scope.testsTabDisabled = true;
   $scope.buildTabDisabled = true;
+
+  $scope.dtOptions = DTOptionsBuilder.newOptions()
+    .withPaginationType('full_numbers')
+    .withOption('order', [0, 'desc']);
 
   Restangular.one('projects', $stateParams.id).get()
     .then(function (project) {
