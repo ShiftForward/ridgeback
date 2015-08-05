@@ -79,7 +79,10 @@ module.exports = {
       'vendor/angular-datatables/dist/angular-datatables.js',
       'vendor/angular-datatables/dist/plugins/bootstrap/angular-datatables.bootstrap.js',
       'vendor/moment/moment.js',
-      'vendor/angular-moment/angular-moment.js'
+      'vendor/angular-moment/angular-moment.js',
+      'vendor/pusher/dist/pusher.js',
+      'vendor/pusher-angular/lib/pusher-angular.js',
+      'vendor/angular-scroll-glue/src/scrollglue.js'
     ],
     css: [
       'vendor/metisMenu/dist/metisMenu.css',

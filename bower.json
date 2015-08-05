@@ -11,7 +11,10 @@
     "morrisjs": "~0.5.1",
     "restangular": "~1.5.1",
     "angular-sweetalert": "~1.1.0",
-    "angular-datatables": "~0.4.3"
+    "angular-datatables": "~0.4.3",
+    "pusher-angular": "~0.1.6",
+    "pusher": "~2.2.4",
+    "angular-scroll-glue": "~2.0.6"
   },
   "dependencies": {},
   "resolutions": {
