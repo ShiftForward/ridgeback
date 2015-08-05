@@ -5,7 +5,6 @@ import com.wordnik.swagger.annotations._
 import persistence.entities.{ JsonProtocol, _ }
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
-import spray.http._
 import spray.httpx.SprayJsonSupport
 import spray.routing._
 import utils.{ Configuration, PersistenceModule }
