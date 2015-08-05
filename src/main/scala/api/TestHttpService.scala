@@ -69,20 +69,20 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule wit
     }
   }
 
-  @Path("/{testId}/pastEvents")
-  @ApiOperation(httpMethod = "GET", response = classOf[Seq[(String, String)]], value = "Returns past events of a test")
+  @Path("/{testId}/events")
+  @ApiOperation(httpMethod = "GET", response = classOf[Seq[(String, String)]], value = "Returns events of a test")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "testId", required = true, dataType = "integer", paramType = "path", value = "ID of test that needs to be fetched")))
   @ApiResponses(Array(
     new ApiResponse(code = 200, message = "Ok"),
     new ApiResponse(code = 404, message = "Not Found")))
-  def TestPastEventsGetRoute = path("tests" / IntNumber / "pastEvents") { testId =>
+  def TestEventsGetRoute = path("tests" / IntNumber / "events") { testId =>
     get {
       respondWithMediaType(`application/json`) {
         onComplete(modules.testsDal.getTestById(testId)) {
           case Success(Some(test)) =>
             onComplete(modules.projectsDal.getProjectById(test.projId.getOrElse(0))) {
-              case Success(Some(proj)) => complete(modules.getPastEvents(proj, testId))
+              case Success(Some(proj)) => complete(modules.getEvents(proj, testId))
               case Success(None) => complete(NotFound, test.projId.getOrElse(0).toString)
               case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
             }

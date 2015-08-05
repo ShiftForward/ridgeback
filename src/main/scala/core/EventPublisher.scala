@@ -14,20 +14,20 @@ object EventType extends Enumeration {
 
 trait EventPublisherModule {
   def publish(proj: Project, testId: Int, event: EventType.EventType, msg: String)
-  def getPastEvents(proj: Project, testId: Int): Seq[(String, String)]
+  def getEvents(proj: Project, testId: Int): Seq[(String, String)]
 
   protected def getChannelName(proj: Project, testId: Int): String = s"${proj.name}-$testId"
 }
 
 trait CachedEventPublisherModule extends EventPublisherModule {
   def publish(proj: Project, testId: Int, event: EventType.EventType, msg: String) = {
-    pastEvents.getOrElseUpdate(getChannelName(proj, testId), mutable.MutableList[(String, String)]()) +=
+    events.getOrElseUpdate(getChannelName(proj, testId), mutable.MutableList[(String, String)]()) +=
       (event.toString -> msg)
   }
 
-  lazy val pastEvents = mutable.Map[String, mutable.MutableList[(String, String)]]()
-  override def getPastEvents(proj: Project, testId: Int): Seq[(String, String)] =
-    pastEvents.getOrElse(getChannelName(proj, testId), Seq())
+  lazy val events = mutable.Map[String, mutable.MutableList[(String, String)]]()
+  override def getEvents(proj: Project, testId: Int): Seq[(String, String)] =
+    events.getOrElse(getChannelName(proj, testId), Seq())
 }
 
 trait PusherEventPublisher extends CachedEventPublisherModule with LazyLogging {
