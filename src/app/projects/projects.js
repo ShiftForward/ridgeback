@@ -53,6 +53,8 @@ angular.module('ngBoilerplate.projects', [
   $scope.testsTabDisabled = true;
   $scope.buildTabDisabled = true;
 
+  $scope.buildStillRunning = false;
+
   $scope.dtOptions = DTOptionsBuilder.newOptions()
     .withPaginationType('full_numbers')
     .withOption('order', [0, 'desc']);
@@ -86,16 +88,24 @@ angular.module('ngBoilerplate.projects', [
       $scope.testsTabDisabled = false;
 
       if ($scope.tests.length !== 0) {
-        return Restangular.one('tests', $scope.tests[$scope.tests.length - 1].id).all('pastEvents').getList();
+        $scope.lastTest = $scope.tests[$scope.tests.length - 1];
+        return Restangular.one('tests', $scope.lastTest.id).all('pastEvents').getList();
       } else {
         return null;
       }
     })
     .then(function (pastEvents) {
-      if (pastEvents) {
+      $scope.buildStillRunning = true;
+
+      if (pastEvents && pastEvents.length > 0) {
         pastEvents.forEach(function (pastEvent) {
           $scope.currentBuild += pastEvent[0] + ": " + pastEvent[1] + "\n";
+          if (pastEvent[0] == "Finished") {
+            $scope.buildStillRunning = false;
+          }
         });
+      } else {
+        $scope.buildStillRunning = false;
       }
 
       if ($scope.tests.length !== 0) {
@@ -103,12 +113,15 @@ angular.module('ngBoilerplate.projects', [
         var client = new Pusher(API_KEY);
         var pusher = $pusher(client);
 
-        var channel = pusher.subscribe($scope.project.name + "-" + $scope.tests[$scope.tests.length - 1].id);
+        var channel = pusher.subscribe($scope.project.name + "-" + $scope.lastTest.id);
 
         $scope.currentBuild += "Bound to channel " + channel.name + ".\n";
 
         channel.bind_all(function (event, data) {
           $scope.currentBuild += event + ": " + JSON.stringify(data) + "\n";
+          if (event == "Finished") {
+            $scope.buildStillRunning = false;
+          }
         });
       }
 
