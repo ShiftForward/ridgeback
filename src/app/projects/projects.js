@@ -66,6 +66,8 @@ angular.module('ngBoilerplate.projects', [
         channel.bind_all(function (event, data) {
           $scope.currentBuild += event + ": " + JSON.stringify(data) + "\n";
         });
+
+        $scope.$broadcast('rickshaw::resize'); // hack to draw the graph at the correct size
       }
     }, function (err) {
       SweetAlert.error('Error', JSON.stringify(err));
