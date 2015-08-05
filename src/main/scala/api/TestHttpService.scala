@@ -70,7 +70,7 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule wit
   }
 
   @Path("/{testId}/pastEvents")
-  @ApiOperation(httpMethod = "GET", response = classOf[Seq[(String, String)]], value = "Returns past events of an event")
+  @ApiOperation(httpMethod = "GET", response = classOf[Seq[(String, String)]], value = "Returns past events of a test")
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "testId", required = true, dataType = "integer", paramType = "path", value = "ID of test that needs to be fetched")))
   @ApiResponses(Array(
@@ -82,7 +82,7 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule wit
         onComplete(modules.testsDal.getTestById(testId)) {
           case Success(Some(test)) =>
             onComplete(modules.projectsDal.getProjectById(test.projId.getOrElse(0))) {
-              case Success(Some(proj)) => complete(modules.getPastEvents(s"${proj.name}-$testId"))
+              case Success(Some(proj)) => complete(modules.getPastEvents(proj, testId))
               case Success(None) => complete(NotFound, test.projId.getOrElse(0).toString)
               case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
             }
