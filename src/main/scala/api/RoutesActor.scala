@@ -51,10 +51,15 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
     def actorRefFactory = context
   }
 
+  val jobs = new JobHttpService(modules) {
+    def actorRefFactory = context
+  }
+
   def receive = runRoute(cors {
     projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
       projects.ProjectTriggerRoute ~ projects.ProjectTriggerRouteBB ~
       tests.TestGetRoute ~ tests.TestsGetRoute ~
+      jobs.JobGetRoute ~ jobs.JobsGetRoute ~
       swaggerService.routes ~
       get {
         pathPrefix("") {
