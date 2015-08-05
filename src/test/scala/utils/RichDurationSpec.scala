@@ -1,11 +1,10 @@
 package utils
 
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
 
 import scala.concurrent.duration._
 
-class RichDurationSpec extends Specification with NoTimeConversions {
+class RichDurationSpec extends Specification {
   import utils.RichDuration._
 
   "RichDuration should" in {

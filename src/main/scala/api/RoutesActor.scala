@@ -8,13 +8,14 @@ import com.wordnik.swagger.model.ApiInfo
 import core.EventPublisherModule
 import slick.jdbc.meta.MTable
 import spray.routing._
-import utils.{ DbModule, Configuration, PersistenceModule }
+import utils.{ CORSSupport, Configuration, DbModule, PersistenceModule }
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.reflect.runtime.universe._
 
-class RoutesActor(modules: Configuration with PersistenceModule with DbModule with EventPublisherModule) extends Actor with HttpService with LazyLogging {
+class RoutesActor(modules: Configuration with PersistenceModule with DbModule with EventPublisherModule) extends Actor
+    with HttpService with LazyLogging with CORSSupport {
 
   def actorRefFactory = context
 
@@ -50,16 +51,18 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
     def actorRefFactory = context
   }
 
-  def receive = runRoute(projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
-    projects.ProjectTriggerRoute ~ projects.ProjectTriggerRouteBB ~
-    tests.TestGetRoute ~ tests.TestsGetRoute ~ tests.TestPastEventsGetRoute ~
-    swaggerService.routes ~
-    get {
-      pathPrefix("") {
-        pathEndOrSingleSlash {
-          getFromResource("swagger-ui/index.html")
-        }
-      } ~
-        getFromResourceDirectory("swagger-ui")
-    })
+  def receive = runRoute(cors {
+    projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
+      projects.ProjectTriggerRoute ~ projects.ProjectTriggerRouteBB ~      tests.TestGetRoute ~ tests.TestsGetRoute ~
+      tests.TestGetRoute ~ tests.TestsGetRoute ~ tests.TestPastEventsGetRoute ~
+      swaggerService.routes ~
+      get {
+        pathPrefix("") {
+          pathEndOrSingleSlash {
+            getFromResource("swagger-ui/index.html")
+          }
+        } ~
+          getFromResourceDirectory("swagger-ui")
+      }
+  })
 }

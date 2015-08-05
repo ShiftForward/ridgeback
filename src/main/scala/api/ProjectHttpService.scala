@@ -89,7 +89,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule 
   @ApiResponses(Array(
     new ApiResponse(code = 202, message = "Accepted"),
     new ApiResponse(code = 404, message = "Not Found")))
-  def ProjectTriggerRoute = path("projects" / IntNumber / "trigger") { (projId) =>
+  def ProjectTriggerRoute = path("projects" / IntNumber / "trigger") { projId =>
     post {
       entity(as[String]) { yamlStr =>
         onComplete(modules.projectsDal.getProjectById(projId)) {
