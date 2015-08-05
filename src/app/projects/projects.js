@@ -21,6 +21,38 @@ angular.module('ngBoilerplate.projects', [
 
   $scope.currentBuild = '';
 
+  $scope.testsSeries = [{
+    color: 'steelblue',
+    data: []
+  }];
+
+  $scope.testsOptions = {
+    renderer: 'line',
+    min: 'auto'
+    // interpolation: 'linear'
+  };
+
+  $scope.testsFeatures = {
+    hover: {
+      formatter: function(series, x, y, z, d, e) {
+        var test = $scope.tests[e.value.id];
+        var date = '<span class="date">' + new Date(x * 1000).toUTCString() + '</span>';
+        var branch = test.branch + " PR #" + test.prId;
+        var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
+        return swatch + 'Test Id ' + test.id + ': ' + y + 'ms <br>' + date + '<br>' + branch;
+      }
+    },
+    xAxis: {
+      timeUnit: 'day'
+    },
+    yAxis: {
+      tickFormat: 'formatKMBT'
+    }
+  };
+
+  $scope.testsTabDisabled = true;
+  $scope.buildTabDisabled = true;
+
   Restangular.one('projects', $stateParams.id).get()
     .then(function (project) {
       $scope.project = project;
@@ -40,6 +72,14 @@ angular.module('ngBoilerplate.projects', [
     })
     .then(function (tests) {
       $scope.tests = tests;
+
+      var testsData = [];
+      $scope.tests.forEach(function (test, idx) {
+        testsData.push({x: moment(test.startDate).unix(), y: $scope.durationDiff(test.startDate, test.endDate), id: idx});
+      });
+
+      $scope.testsSeries[0].data = testsData;
+      $scope.testsTabDisabled = false;
 
       if ($scope.tests.length !== 0) {
         return Restangular.one('tests', $scope.tests[$scope.tests.length - 1].id).all('pastEvents').getList();
@@ -66,38 +106,21 @@ angular.module('ngBoilerplate.projects', [
         channel.bind_all(function (event, data) {
           $scope.currentBuild += event + ": " + JSON.stringify(data) + "\n";
         });
-
-        $scope.$broadcast('rickshaw::resize'); // hack to draw the graph at the correct size
       }
+
+      $scope.buildTabDisabled = false;
     }, function (err) {
       SweetAlert.error('Error', JSON.stringify(err));
+      $scope.testsTabDisabled = false;
+      $scope.buildTabDisabled = false;
     });
+
+  $scope.tabTestHistory = function () {
+    $scope.$broadcast('rickshaw::resize'); // hack to draw the graph at the correct size
+  };
 
   $scope.durationDiff = function (start, end) {
     var duration = moment.duration(moment(end).diff(moment(start)));
     return duration.asMilliseconds();
   };
-
-  $scope.options2 = {
-    renderer: 'line'
-  };
-  $scope.features2 = {
-    hover: {
-      xFormatter: function(x) {
-        return 't=' + x;
-      },
-      yFormatter: function(y) {
-        return '$' + y;
-      }
-    }
-  };
-  $scope.series2 = [{
-    name: 'Series 1',
-    color: 'steelblue',
-    data: [{x: 0, y: 23}, {x: 1, y: 15}, {x: 2, y: 79}, {x: 3, y: 31}, {x: 4, y: 60}]
-  }, {
-    name: 'Series 2',
-    color: 'lightblue',
-    data: [{x: 0, y: 30}, {x: 1, y: 20}, {x: 2, y: 64}, {x: 3, y: 50}, {x: 4, y: 15}]
-  }];
 });
