@@ -51,10 +51,6 @@ object CommentBuilder {
     }
   }
 
-  private val keywords = Seq("id", "name", "mean", "min", "max",
-    "prevMean", "prevMean5", "actionMean", "actionMean5",
-    "diffMean", "diffMean5", "diff%Mean", "diff%Mean5")
-
   private def keywordToString(keyword: String, job: Job,
                               prevJobs: Seq[Job],
                               commentWriter: CommentWriter, modules: Configuration): String = {
