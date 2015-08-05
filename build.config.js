@@ -82,14 +82,18 @@ module.exports = {
       'vendor/angular-moment/angular-moment.js',
       'vendor/pusher/dist/pusher.js',
       'vendor/pusher-angular/lib/pusher-angular.js',
-      'vendor/angular-scroll-glue/src/scrollglue.js'
+      'vendor/angular-scroll-glue/src/scrollglue.js',
+      'vendor/d3/d3.js',
+      'vendor/rickshaw/rickshaw.js',
+      'vendor/angular-rickshaw/rickshaw.js'
     ],
     css: [
       'vendor/metisMenu/dist/metisMenu.css',
       'vendor/morrisjs/morris.css',
       'vendor/sweetalert/dist/sweetalert.css',
       'vendor/datatables/media/css/jquery.dataTables.css',
-      'vendor/angular-datatables/dist/plugins/bootstrap/datatables.bootstrap.css'
+      'vendor/angular-datatables/dist/plugins/bootstrap/datatables.bootstrap.css',
+      'vendor/rickshaw/rickshaw.css'
     ],
     images: [
       'vendor/datatables/media/images/*.png'

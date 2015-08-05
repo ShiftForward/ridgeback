@@ -5,7 +5,8 @@ angular.module('ngBoilerplate.projects', [
   'datatables',
   'angularMoment',
   'pusher-angular',
-  'luegg.directives'
+  'luegg.directives',
+  'angular-rickshaw'
 ]).config(function config($stateProvider) {
   $stateProvider.state('home.projects', {
     url: '/projects/:id',
@@ -74,4 +75,27 @@ angular.module('ngBoilerplate.projects', [
     var duration = moment.duration(moment(end).diff(moment(start)));
     return duration.asMilliseconds();
   };
+
+  $scope.options2 = {
+    renderer: 'line'
+  };
+  $scope.features2 = {
+    hover: {
+      xFormatter: function(x) {
+        return 't=' + x;
+      },
+      yFormatter: function(y) {
+        return '$' + y;
+      }
+    }
+  };
+  $scope.series2 = [{
+    name: 'Series 1',
+    color: 'steelblue',
+    data: [{x: 0, y: 23}, {x: 1, y: 15}, {x: 2, y: 79}, {x: 3, y: 31}, {x: 4, y: 60}]
+  }, {
+    name: 'Series 2',
+    color: 'lightblue',
+    data: [{x: 0, y: 30}, {x: 1, y: 20}, {x: 2, y: 64}, {x: 3, y: 50}, {x: 4, y: 15}]
+  }];
 });
