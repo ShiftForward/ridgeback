@@ -26,6 +26,7 @@ angular.module( 'ngBoilerplate.home', [
 .config(function config( $stateProvider ) {
   $stateProvider.state('home', {
     templateUrl: 'home/home.tpl.html',
+    controller: 'HomeCtrl',
     abstract: true,
     data: {pageTitle: 'Home'}
   });

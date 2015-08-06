@@ -17,7 +17,7 @@ angular.module('ngBoilerplate.projects', [
 }).controller('ProjectsCtrl', function ProjectsController($scope, $stateParams, Restangular, SweetAlert,
                                                           $pusher, DTOptionsBuilder) {
 
-  var regex = /.*(bitbucket\.org|github\.com):([A-Za-z0-9\-_\.]+)\/([A-Za-z0-9\-_\.]+).git.*/g;
+  var regex = /.*(bitbucket\.org|github\.com):([a-z0-9\-_\.]+)\/([a-z0-9\-_\.]+).git.*/i;
 
   $scope.currentBuild = '';
 
@@ -73,6 +73,76 @@ angular.module('ngBoilerplate.projects', [
         $scope.project.providerName = provider.slice(0, -4);
         $scope.project.url = provider + '/' + org + '/' + name;
       }
+
+      return Restangular.all('jobs').getList({'projId': $stateParams.id});
+    })
+    .then(function (jobs) {
+
+      jobs.forEach(function (job) {
+        var sum = job.durations.reduce(function (d1, d2) { return d1 + d2; });
+        job.meanDuration = job.durations.length > 0 ? sum / job.durations.length : Number.NaN;
+      });
+
+      var groupedJobs = _.chain(jobs).groupBy('jobName').value();
+
+      var mergeDurations = function (j) {
+        meanDurations.push(j.meanDuration);
+      };
+
+      var mergeTestIds = function (j) {
+        testIds.push(j.testId);
+      };
+
+      $scope.jobs = [];
+
+      for (var k in groupedJobs) {
+        if (groupedJobs.hasOwnProperty(k)) {
+          var groupedJob = groupedJobs[k];
+
+          if (groupedJob.length > 0) {
+
+            var meanDurations = [];
+            groupedJob.forEach(mergeDurations);
+
+            var testIds = [];
+            groupedJob.forEach(mergeTestIds);
+
+            groupedJob[0].meanDurations = meanDurations;
+            groupedJob[0].testIds = testIds;
+            $scope.jobs.push(groupedJob[0]);
+          }
+        }
+      }
+
+      $scope.jobs.forEach(function (job) {
+        job.options = {
+          renderer: 'line'
+        };
+
+        var data = [];
+
+        job.meanDurations.forEach(function (d, i) {
+          data.push({x: i, y: d, testId: job.testIds[i]});
+        });
+
+        job.series = [{
+          name: job.jobName,
+          color: 'steelblue',
+          data: data
+        }];
+
+        job.features = {
+          yAxis: {
+            tickFormat: 'formatKMBT'
+          },
+          hover: {
+            formatter: function(series, x, y, z, d, e) {
+              var testId = e.value.testId;
+              return 'Test Id ' + testId + ': <strong>' + y + 'ms</strong>';
+            }
+          }
+        };
+      });
 
       return Restangular.all('tests').getList({'projId': $stateParams.id});
     })
@@ -132,7 +202,7 @@ angular.module('ngBoilerplate.projects', [
       $scope.buildTabDisabled = false;
     });
 
-  $scope.tabTestHistory = function () {
+  $scope.tabSelected = function () {
     $scope.$broadcast('rickshaw::resize'); // hack to draw the graph at the correct size
   };
 

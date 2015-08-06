@@ -41,15 +41,25 @@
     <div class="panel panel-default">
       <div class="panel-body">
         <tabset justified="true">
-          <tab heading="Status">
+          <tab heading="Job history" select="tabSelected()">
             <br>
-            <!-- <rickshaw
-                rickshaw-options="options2"
-                rickshaw-features="features2"
-                rickshaw-series="series2">
-            </rickshaw> -->
+            <div ng-show="jobs.length == 0" class="alert alert-danger">
+              <strong>Uh oh</strong> No jobs have ran yet.
+            </div>
+            <div class="panel panel-default" ng-repeat="job in jobs">
+              <div class="panel-heading">
+                <strong>{{job.jobName}}</strong> <small>{{job.source}}</small>
+              </div>
+              <div class="panel-body">
+                <rickshaw
+                    rickshaw-options="job.options"
+                    rickshaw-features="job.features"
+                    rickshaw-series="job.series">
+                </rickshaw>
+              </div>
+            </div>
           </tab>
-          <tab heading="Current test" disabled="buildTabDisabled">
+          <tab heading="Current test" select="tabSelected()" disabled="buildTabDisabled">
             <br>
 
             <div ng-show="!!lastTest" class="panel panel-default">
@@ -108,7 +118,7 @@
             <textarea scroll-glue style="background-color: #131722" class="form-control bg-color-green" rows=20
                       ng-model="currentBuild" placeholder="No build running"></textarea>
           </tab>
-          <tab heading="Test history" select="tabTestHistory()" disabled="testsTabDisabled">
+          <tab heading="Test history" select="tabSelected()" disabled="testsTabDisabled">
             <br>
             <table datatable="ng" dt-options="dtOptions" class="row-border hover">
               <thead>
