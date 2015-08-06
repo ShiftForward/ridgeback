@@ -9,7 +9,7 @@ angular.module('ngBoilerplate.createProject', [
     templateUrl: 'createProject/createProject.tpl.html',
     data: {pageTitle: 'Create Project'}
   });
-}).controller('CreateProjectCtrl', function CreateProjectController($scope, $rootScope, SweetAlert, Restangular) {
+}).controller('CreateProjectCtrl', function CreateProjectController($scope, $rootScope, $state, SweetAlert, Restangular) {
   var bitbucketRegex = /.*bitbucket\.org\/([A-Za-z0-9\-_\.]+)\/([A-Za-z0-9\-_\.]+).*/g;
   var githubRegex = /.*github\.com\/([A-Za-z0-9\-_\.]+)\/([A-Za-z0-9\-_\.]+).*/g;
 
@@ -42,6 +42,7 @@ angular.module('ngBoilerplate.createProject', [
       Restangular.all('projects').post({name: $scope.input.name, gitRepo: $scope.input.url}).then(function (id) {
         $scope.input.id = id;
         $rootScope.projects.push($scope.input);
+        $state.go('home.projects', {id: id});
       }, function (err) {
         SweetAlert.error('Error', JSON.stringify(err));
       }).then(function () {
