@@ -129,7 +129,9 @@ angular.module('ngBoilerplate.projects', [
 
       $scope.jobs.forEach(function (job) {
         job.options = {
-          renderer: 'line'
+          renderer: 'line',
+          interpolation: 'linear',
+          min: 'auto'
         };
 
         var data = [];
