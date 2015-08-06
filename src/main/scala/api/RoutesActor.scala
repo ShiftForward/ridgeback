@@ -30,7 +30,7 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
   }
 
   val swaggerService = new SwaggerHttpService {
-    override def apiTypes = Seq(typeOf[ProjectHttpService], typeOf[TestHttpService])
+    override def apiTypes = Seq(typeOf[ProjectHttpService], typeOf[TestHttpService], typeOf[JobHttpService])
 
     override def apiVersion = "2.0"
 
