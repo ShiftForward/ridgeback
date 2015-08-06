@@ -47,23 +47,23 @@ abstract class JobHttpService(modules: Configuration with PersistenceModule) ext
     new ApiResponse(code = 200, message = "Ok"),
     new ApiResponse(code = 400, message = "Bad Request")))
   def JobsGetRoute = path("jobs") {
-    parameters('testId.?, 'projId.?) { (testIdStr: Option[String], projIdStr: Option[String]) =>
+    parameters('testId.as[Int].?, 'projId.as[Int].?) { (testIdOpt: Option[Int], projIdOpt: Option[Int]) =>
       {
         get {
           respondWithMediaType(`application/json`) {
-            (testIdStr, projIdStr) match {
+            (testIdOpt, projIdOpt) match {
               case (None, None) =>
                 onComplete(modules.jobsDal.getJobs()) {
                   case Success(jobs) => complete(jobs)
                   case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
                 }
               case (Some(testId), None) =>
-                onComplete(modules.jobsDal.getJobsByTestId(testId.toInt)) {
+                onComplete(modules.jobsDal.getJobsByTestId(testId)) {
                   case Success(jobs) => complete(jobs)
                   case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
                 }
               case (None, Some(projId)) =>
-                onComplete(modules.jobsDal.getJobsByProjId(projId.toInt)) {
+                onComplete(modules.jobsDal.getJobsByProjId(projId)) {
                   case Success(jobs) => complete(jobs)
                   case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
                 }

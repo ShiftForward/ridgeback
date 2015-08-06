@@ -44,21 +44,21 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule) ex
     new ApiImplicitParam(name = "projId", required = false, dataType = "integer", paramType = "query", value = "ID of project that needs tests to be fetched")))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
   def TestsGetRoute = path("tests") {
-    parameters('projId.?) { (projIdStr: Option[String]) =>
+    parameters('projId.as[Int].?) { (projIdOpt: Option[Int]) =>
       {
         get {
           respondWithMediaType(`application/json`) {
-            if (projIdStr.isEmpty) {
-              onComplete(modules.testsDal.getTests()) {
-                case Success(tests) => complete(tests)
-                case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-              }
-            } else {
-              val projId = projIdStr.get.toInt
-              onComplete(modules.testsDal.getTestsByProjId(projId)) {
-                case Success(tests) => complete(tests)
-                case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-              }
+            projIdOpt match {
+              case None =>
+                onComplete(modules.testsDal.getTests()) {
+                  case Success(tests) => complete(tests)
+                  case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+                }
+              case Some(projId) =>
+                onComplete(modules.testsDal.getTestsByProjId(projId)) {
+                  case Success(tests) => complete(tests)
+                  case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+                }
             }
           }
         }
