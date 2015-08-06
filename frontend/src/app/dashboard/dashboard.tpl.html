@@ -1,51 +1,69 @@
+<style>
+  .overflowEllipsis {
+    width: 100%;
+    text-overflow: ellipsis;
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+</style>
+
 <div class="row">
   <div class="col-md-4" ng-repeat="project in projects">
-    <div class="panel panel-info text-center no-boder">
+    <div class="panel panel-info">
       <div class="panel-heading">
-        <h4><a ui-sref="home.projects({id: project.id})">{{project.name}}</a></h4>
+        <h4 class="text-center"><a ui-sref="home.projects({id: project.id})">{{project.name}}</a></h4>
       </div>
       <div class="panel-body">
 
-        <div class="row">
-          <div class="col-md-6 text-left">
-            <i class="fa fa-pencil-square-o"></i>
-            id {{project.id}}
+        <div class="col-md-6">
+          <div class="row">
+            <span class="overflowEllipsis">
+              <i class="fa fa-pencil-square-o"></i>
+              id {{project.id}}
+            </span>
           </div>
-          <div class="col-md-6 text-left" ng-show="project.lastTest">
-            <i class="fa fa-slack"></i>
-            last test ran: {{project.lastTest.id}}
+          <div class="row">
+            <span class="overflowEllipsis">
+              <i class="fa fa-cog"></i>
+              {{project.testsCount}} tests
+            </span>
           </div>
-        </div>
-
-        <div class="row">
-          <div class="col-md-6 text-left">
-            <i class="fa fa-cog"></i>
-            {{project.testsCount}} tests
+          <div class="row">
+            <span class="overflowEllipsis">
+              <i class="fa fa-cog"></i>
+              {{project.jobsCount}} jobs
+            </span>
           </div>
-          <div class="col-md-6 text-left" ng-show="project.lastTest">
-            <i class="fa fa-clock-o"></i>
-            ran for {{durationDiff(project.lastTest.startDate, project.lastTest.endDate) | amDurationFormat : 'milliseconds' }}
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-md-6 text-left">
-            <i class="fa fa-cog"></i>
-            {{project.jobsCount}} jobs
-          </div>
-          <div class="col-md-6 text-left" ng-show="project.lastTest">
-            <i class="fa fa-calendar-o"></i>
-            about <span am-time-ago="project.lastTest.endDate" title="{{project.lastTest.endDate | date: 'medium'}}"></span>
+          <div class="row">
+            <span class="overflowEllipsis">
+              <i class="fa fa-code-fork"></i>
+              <a target="_blank" ng-href="https://{{project.url}}">{{project.org}}/{{project.repoName}}</a>
+            </span>
           </div>
         </div>
 
-        <div class="row">
-          <div class="col-md-6 text-left">
-            <i class="fa fa-code-fork"></i>
-            <a target="_blank" ng-href="https://{{project.url}}">{{project.org}}/{{project.repoName}}</a>
+        <div class="col-md-6">
+          <div class="row">
+            <span class="overflowEllipsis" ng-show="project.lastTest">
+              <i class="fa fa-slack"></i>
+              last test ran: {{project.lastTest.id}}
+            </span>
           </div>
-          <div class="col-md-6 text-left" ng-show="project.lastTest">
-            <span class="text-right" ng-show="project.lastTest.prId">
+          <div class="row">
+            <span class="overflowEllipsis" ng-show="project.lastTest">
+              <i class="fa fa-clock-o"></i>
+              ran for {{durationDiff(project.lastTest.startDate, project.lastTest.endDate) | amDurationFormat : 'milliseconds' }}
+            </span>
+          </div>
+          <div class="row">
+            <span class="overflowEllipsis" ng-show="project.lastTest">
+              <i class="fa fa-calendar-o"></i>
+              about <span am-time-ago="project.lastTest.endDate" title="{{project.lastTest.endDate | date: 'medium'}}"></span>
+            </span>
+          </div>
+          <div class="row">
+            <span class="overflowEllipsis" ng-show="project.lastTest && project.lastTest.prId">
               <i class="fa fa-bitbucket"></i>
               <a target="_blank" ng-href="https://{{project.url}}/pull-requests/{{project.lastTest.prId}}">pull request {{project.lastTest.prId}} </a>
             </span>
