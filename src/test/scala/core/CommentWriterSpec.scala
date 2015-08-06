@@ -42,7 +42,7 @@ class CommentWriterSpec extends AbstractAPISpec {
         modules.jobsDal.getPastJobs(job1) returns Future(Seq())
 
         val commentWriter = new TestCommentWriter
-        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter, None)))
         actor ! SendComment(proj, testId, prSource)
 
         commentWriter.message must contain(commentWriter.actionNew).eventually
@@ -62,7 +62,7 @@ class CommentWriterSpec extends AbstractAPISpec {
         modules.jobsDal.getPastJobs(job1) returns Future(Seq(job3, job2))
 
         val commentWriter = new TestCommentWriter
-        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter, None)))
         actor ! SendComment(proj, testId, prSource)
 
         commentWriter.message must contain(commentWriter.actionBetter).eventually
@@ -83,7 +83,7 @@ class CommentWriterSpec extends AbstractAPISpec {
         modules.jobsDal.getPastJobs(job1) returns Future(Seq(job3, job2))
 
         val commentWriter = new TestCommentWriter
-        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter, None)))
         actor ! SendComment(proj, testId, prSource)
 
         commentWriter.message must contain(commentWriter.actionWorse).eventually
@@ -104,7 +104,7 @@ class CommentWriterSpec extends AbstractAPISpec {
         modules.jobsDal.getPastJobs(job1) returns Future(Seq(job3, job2))
 
         val commentWriter = new TestCommentWriter
-        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter)))
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, commentWriter, None)))
         actor ! SendComment(proj, testId, prSource)
 
         commentWriter.message must contain(commentWriter.actionEqual).eventually

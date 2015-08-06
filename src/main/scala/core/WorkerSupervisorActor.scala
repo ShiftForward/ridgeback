@@ -1,7 +1,7 @@
 package core
 
 import java.io.File
-import java.nio.file.{ Path, Files }
+import java.nio.file.Files
 import java.time.ZonedDateTime
 
 import akka.actor.{ Actor, Props }
@@ -54,25 +54,25 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
   }
 
   def running(testId: Int): Receive = {
-    case TestError(ex) => modules.publish(project.name, testId, EventType.TestError, ex.getMessage)
-    case CommandExecuted(cmd) => modules.publish(project.name, testId, EventType.CmdExecuted, cmd)
-    case CommandFailed(cmd, exitCode, jobName) => modules.publish(project.name, testId, EventType.CmdFailed, s"$cmd ($exitCode)")
-    case CommandStdout(str) => modules.publish(project.name, testId, EventType.Stdout, str)
-    case CommandStderr(str) => modules.publish(project.name, testId, EventType.Stderr, str)
+    case TestError(ex) => modules.publish(project, testId, EventType.TestError, ex.getMessage)
+    case CommandExecuted(cmd) => modules.publish(project, testId, EventType.CmdExecuted, cmd)
+    case CommandFailed(cmd, exitCode, jobName) => modules.publish(project, testId, EventType.CmdFailed, s"$cmd ($exitCode)")
+    case CommandStdout(str) => modules.publish(project, testId, EventType.Stdout, str)
+    case CommandStderr(str) => modules.publish(project, testId, EventType.Stderr, str)
     case MetricOutput(durations, jobName, source, threshold) =>
-      modules.publish(project.name, testId, EventType.Metric, durations.map(d => d.toMillis).mkString(","))
+      modules.publish(project, testId, EventType.Metric, durations.map(d => d.toMillis).mkString(","))
       Await.result(modules.jobsDal.save(Job(None, project.id, Some(testId), jobName, source, threshold, durations)), 5.seconds)
-    case InvalidOutput(cmd, jobName) => modules.publish(project.name, testId, EventType.InvalidOutput, cmd)
-    case Finished =>
+    case InvalidOutput(cmd, jobName) => modules.publish(project, testId, EventType.InvalidOutput, cmd)
+    case Finished(test) =>
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
       tempDir.foreach(d => FileUtils.forceDelete(d))
-      modules.publish(project.name, testId, EventType.Finished, "")
+      modules.publish(project, testId, EventType.Finished, "")
       prSource.foreach(pr => {
-        val actor = system.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter)))
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter, test)))
         actor ! SendComment(project, testId, pr)
       })
       context.stop(self)
-    case BadConfiguration(errs) => modules.publish(project.name, testId, EventType.BadConfiguration, errs.mkString("\n"))
+    case BadConfiguration(errs) => modules.publish(project, testId, EventType.BadConfiguration, errs.mkString("\n"))
     case _ => println("Unknown")
   }
 }
