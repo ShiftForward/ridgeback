@@ -3,6 +3,7 @@ package persistence.entities
 import scala.concurrent.duration._
 
 case class TestsConfiguration(
+  commentTemplate: Option[String],
   before_jobs: Option[List[String]],
   jobs: List[JobDefinition],
   after_jobs: Option[List[String]])

@@ -41,5 +41,5 @@ class TestsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit val p
     db.run(updateAction)
   }
 
-  override def createTables(): Future[Unit] = db.run(DBIO.seq(tests.schema.create))
+  override def createTables(): Future[Unit] = db.run(tests.schema.create)
 }

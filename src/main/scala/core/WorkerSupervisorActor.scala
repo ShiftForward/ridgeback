@@ -63,12 +63,12 @@ class WorkerSupervisorActor(modules: Configuration with PersistenceModule with E
       modules.publish(project, testId, EventType.Metric, durations.map(d => d.toMillis).mkString(","))
       Await.result(modules.jobsDal.save(Job(None, project.id, Some(testId), jobName, source, threshold, durations)), 5.seconds)
     case InvalidOutput(cmd, jobName) => modules.publish(project, testId, EventType.InvalidOutput, cmd)
-    case Finished =>
+    case Finished(test) =>
       modules.testsDal.setTestEndDate(testId, ZonedDateTime.now())
       tempDir.foreach(d => FileUtils.forceDelete(d))
       modules.publish(project, testId, EventType.Finished, "")
       prSource.foreach(pr => {
-        val actor = system.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter)))
+        val actor = system.actorOf(Props(new CommentWriterActor(modules, BitbucketCommentWriter, test)))
         actor ! SendComment(project, testId, pr)
       })
       context.stop(self)
