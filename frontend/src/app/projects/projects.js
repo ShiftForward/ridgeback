@@ -74,6 +74,19 @@ angular.module('ngBoilerplate.projects', [
         $scope.project.url = provider + '/' + org + '/' + name;
       }
 
+      return Restangular.all('tests').getList({'projId': $stateParams.id});
+    })
+    .then(function (tests) {
+      $scope.tests = tests;
+
+      var testsData = [];
+      $scope.tests.forEach(function (test, idx) {
+        testsData.push({x: moment(test.startDate).unix(), y: $scope.durationDiff(test.startDate, test.endDate), id: idx});
+      });
+
+      $scope.testsSeries[0].data = testsData;
+      $scope.testsTabDisabled = false;
+
       return Restangular.all('jobs').getList({'projId': $stateParams.id});
     })
     .then(function (jobs) {
@@ -121,8 +134,20 @@ angular.module('ngBoilerplate.projects', [
 
         var data = [];
 
+        function testDate(testId) {
+          var test = $scope.tests.find(function (test) {
+            return test.id === testId;
+          });
+
+          if (test) {
+            return moment(test.startDate).unix();
+          } else {
+            return undefined;
+          }
+        }
+
         job.meanDurations.forEach(function (d, i) {
-          data.push({x: i, y: d, testId: job.testIds[i]});
+          data.push({x: testDate(job.testIds[i]), y: d, testId: job.testIds[i]});
         });
 
         job.series = [{
@@ -135,27 +160,19 @@ angular.module('ngBoilerplate.projects', [
           yAxis: {
             tickFormat: 'formatKMBT'
           },
+          xAxis: {
+            timeUnit: 'day'
+          },
           hover: {
             formatter: function(series, x, y, z, d, e) {
               var testId = e.value.testId;
-              return 'Test Id ' + testId + ': <strong>' + y + 'ms</strong>';
+              var date = '<span class="date">' + new Date(x * 1000).toUTCString() + '</span>';
+              var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
+              return swatch + 'Test Id ' + testId + ': ' + y + 'ms <br>' + date + '<br>';
             }
           }
         };
       });
-
-      return Restangular.all('tests').getList({'projId': $stateParams.id});
-    })
-    .then(function (tests) {
-      $scope.tests = tests;
-
-      var testsData = [];
-      $scope.tests.forEach(function (test, idx) {
-        testsData.push({x: moment(test.startDate).unix(), y: $scope.durationDiff(test.startDate, test.endDate), id: idx});
-      });
-
-      $scope.testsSeries[0].data = testsData;
-      $scope.testsTabDisabled = false;
 
       if ($scope.tests.length !== 0) {
         $scope.lastTest = $scope.tests[$scope.tests.length - 1];
