@@ -89,7 +89,7 @@ angular.module('ngBoilerplate.projects', [
 
       if ($scope.tests.length !== 0) {
         $scope.lastTest = $scope.tests[$scope.tests.length - 1];
-        return Restangular.one('tests', $scope.lastTest.id).all('pastEvents').getList();
+        return Restangular.one('tests', $scope.lastTest.id).all('events').getList();
       } else {
         return null;
       }
