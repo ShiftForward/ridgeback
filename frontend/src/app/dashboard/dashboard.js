@@ -45,7 +45,7 @@ angular.module('ngBoilerplate.dashboard', [
           project.buildRunning = true;
           events.forEach(function (event) {
             if (event[0] == "Finished") {
-              $scope.buildRunning = false;
+              project.buildRunning = false;
             }
           });
         }
