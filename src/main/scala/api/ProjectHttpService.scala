@@ -72,7 +72,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule 
       entity(as[SimpleProject]) {
         projectToInsert =>
           onComplete(modules.projectsDal.save(Project(None, projectToInsert.name, projectToInsert.gitRepo))) {
-            case Success(insertedEntities) => complete(Created)
+            case Success(projId) => complete(Created, projId.toString)
             case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
       }

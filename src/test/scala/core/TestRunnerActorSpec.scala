@@ -183,7 +183,7 @@ class TestRunnerActorSpec extends Specification {
       expectMsg(CommandExecuted("mkdir ttt"))
       expectMsg(CommandExecuted("true"))
       expectMsg(CommandExecuted("rmdir ttt"))
-      expectMsg(Finished)
+      expectMsgClass(classOf[Finished])
     }
 
     def checkNotWindows = System.getProperty("os.name").startsWith("Windows") must be_==(false).orSkip

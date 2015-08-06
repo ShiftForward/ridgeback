@@ -1,8 +1,8 @@
 package core
 
-import akka.actor.{ PoisonPill, Actor, ActorRefFactory }
+import akka.actor.{ Actor, ActorRefFactory, PoisonPill }
 import com.typesafe.scalalogging.LazyLogging
-import persistence.entities.{ Job, Project, PullRequestPayload }
+import persistence.entities.{ TestsConfiguration, Project, PullRequestPayload }
 import spray.client.pipelining._
 import spray.http.{ BasicHttpCredentials, HttpRequest, _ }
 import utils._
@@ -23,7 +23,9 @@ trait CommentWriter {
   def actionUnknown: String
 }
 
-class CommentWriterActor(modules: Configuration with PersistenceModule, commentWriter: CommentWriter) extends Actor with LazyLogging {
+class CommentWriterActor(modules: Configuration with PersistenceModule,
+                         commentWriter: CommentWriter,
+                         testConfig: Option[TestsConfiguration]) extends Actor with LazyLogging {
   import context.dispatcher
 
   def receive: Receive = {
@@ -31,7 +33,7 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
 
       val response = for {
         jobs <- modules.jobsDal.getJobsByTestId(testId)
-        jobComment <- Future.sequence(jobs.map(buildComment(_, commentWriter))).map(_.mkString("\n\n"))
+        jobComment <- Future.sequence(jobs.map(CommentBuilder.buildComment(_, commentWriter, modules, testConfig.flatMap(_.commentTemplate)))).map(_.mkString("\n\n"))
         response <- commentWriter(prSource, jobComment, modules)
       } yield response
 
@@ -47,36 +49,6 @@ class CommentWriterActor(modules: Configuration with PersistenceModule, commentW
           logger.error(s"Failed to send comment for $name", error)
           self ! PoisonPill
       }
-  }
-
-  def buildComment(job: Job, commentWriter: CommentWriter): Future[String] = {
-    import utils.RichDuration._
-
-    val description = s"${job.jobName} (${job.id.get})"
-    job.durations match {
-      case ds if ds.isEmpty => Future(s"- ${commentWriter.actionUnknown} Job $description had no output")
-      case ds =>
-        modules.jobsDal.getPastJobs(job).map { pastJobs =>
-          val pastMeanOpt = pastJobs.headOption
-            .map(j => MeanDurationStat(j.durations)).getOrElse(None)
-
-          val min = MinDurationStat(ds).get
-          val max = MaxDurationStat(ds).get
-          val mean = MeanDurationStat(ds).get
-
-          pastMeanOpt match {
-            case Some(pastMean) =>
-              val defaultThreshold = modules.config.getInt("worker.defaultThreshold")
-              val action = pastMean.compareWithThreshold(mean, job.threshold.getOrElse(defaultThreshold)) match {
-                case c if c < 0 => commentWriter.actionWorse
-                case c if c > 0 => commentWriter.actionBetter
-                case _ => commentWriter.actionEqual
-              }
-              s"- $action Job $description took in average ${mean.toShortString} [${min.toShortString}, ${max.toShortString}] (before ${pastMeanOpt.get.toShortString})"
-            case None => s"- ${commentWriter.actionNew} Job $description took in average ${mean.toShortString} [${min.toShortString}, ${max.toShortString}]"
-          }
-        }
-    }
   }
 }
 

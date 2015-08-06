@@ -21,14 +21,15 @@ object RichDuration {
         " milliseconds" -> "ms",
         " millisecond" -> "ms",
         " nanoseconds" -> "ns",
-        " nanosecond" -> "ns")
+        " nanosecond" -> "ns",
+        "Duration.Undefined" -> "?")
         .foldLeft(dur.toString) {
           case (z, (s, r)) => z.replaceAll(s, r)
         }
     }
 
     def compareWithThreshold(otherDur: Duration, thresh: Int): Int = {
-      def inThreshold = Math.abs((dur - otherDur) / otherDur) * 100 <= thresh
+      def inThreshold = PercentageDiffDurationStat(dur, otherDur) <= thresh
 
       dur.compare(otherDur) match {
         case c if inThreshold => 0
