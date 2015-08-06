@@ -36,6 +36,10 @@
   }
 </style>
 
+<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">
+  <div ng-bind-html="alert.msg"></div>
+</alert>
+
 <div class="row">
   <div class="col-md-12">
     <div class="panel panel-default">
@@ -43,7 +47,7 @@
         <tabset justified="true">
           <tab heading="Job history" select="tabSelected()">
             <br>
-            <div ng-show="jobs.length == 0" class="alert alert-danger">
+            <div ng-show="jobs.length == 0" class="alert alert-warning">
               <strong>Uh oh</strong> No jobs have ran yet.
             </div>
             <div class="panel panel-default" ng-repeat="job in jobs">

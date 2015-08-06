@@ -9,7 +9,7 @@ angular.module('ngBoilerplate.createProject', [
     templateUrl: 'createProject/createProject.tpl.html',
     data: {pageTitle: 'Create Project'}
   });
-}).controller('CreateProjectCtrl', function CreateProjectController($scope, $rootScope, $state, SweetAlert, Restangular) {
+}).controller('CreateProjectCtrl', function CreateProjectController($scope, $rootScope, $state, $sce, SweetAlert, Restangular, config) {
   var bitbucketRegex = /.*bitbucket\.org\/([A-Za-z0-9\-_\.]+)\/([A-Za-z0-9\-_\.]+).*/g;
   var githubRegex = /.*github\.com\/([A-Za-z0-9\-_\.]+)\/([A-Za-z0-9\-_\.]+).*/g;
 
@@ -41,6 +41,13 @@ angular.module('ngBoilerplate.createProject', [
 
       Restangular.all('projects').post({name: $scope.input.name, gitRepo: $scope.input.url}).then(function (id) {
         $scope.input.id = id;
+
+        $rootScope.alerts.push({
+          type: 'success',
+          msg: $sce.trustAsHtml('Project created successfully.<br>Create a <strong>webhook</strong> to URL <code>' +
+            config.baseUrl + '/projects/' + id + '/trigger/bb</code> with a <code>pull request comment created</code> <strong>trigger</strong>.')
+        });
+
         $rootScope.projects.push($scope.input);
         $state.go('home.projects', {id: id});
       }, function (err) {
