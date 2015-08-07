@@ -1,0 +1,16 @@
+- [ ] Add more info to the job points hover in the Job history tab
+- [ ] Remove duplicated code in home.js, projects.js and dashboard.js
+- [ ] Optimize loading the /dashboard (currently query all projects, all tests and all jobs twice)
+- [ ] Remove Bitbucket hardcoded URLs (links in dashboard and current test tab)
+- [ ] Store events in the database instead of cache only (`EventPublisherModule`)
+- [ ] Allow defining the database backend in application.conf
+- [ ] Support parametrized keywords messageTable (e.g $pastMean(10) - mean of the last 10 jobs)
+- [ ] Move swagger-ui out of the repo (bower or SBT task)
+- [ ] Support comments on commits and not PRs only
+- [ ] Support Github comments/pull-requests
+- [ ] Allow disabled pusher.com integration in config
+- [ ] Allow defining on config if tests ran on demand (keyword) or automatically (each PR, each commit, etc.)
+- [ ] Run tests on Docker instead of directly on the machine
+- [ ] Write link to dashboard in comments
+- [ ] Change bitbucket user/pass auth to tokens
+- [ ] Add a [deploy with heroku](https://devcenter.heroku.com/articles/heroku-button) button to readme
