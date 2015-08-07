@@ -65,7 +65,7 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
           }
         } ~ pathPrefix("gui") {
           pathEndOrSingleSlash {
-            redirect("gui/index.html", StatusCodes.MovedPermanently)
+            redirect("index.html", StatusCodes.MovedPermanently)
           } ~
           getFromDirectory("src/main/webapp/build")
         } ~
