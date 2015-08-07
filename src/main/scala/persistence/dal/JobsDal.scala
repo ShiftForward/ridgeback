@@ -11,6 +11,7 @@ trait JobsDal {
   def save(job: Job): Future[Int]
   def getJobs(): Future[Seq[Job]]
   def getJobsByTestId(testId: Int): Future[Seq[Job]]
+  def getJobsByProjId(projId: Int): Future[Seq[Job]]
   def getJobById(id: Int): Future[Option[Job]]
   def getPastJobs(job: Job): Future[Seq[Job]]
   def createTables(): Future[Unit]
@@ -24,6 +25,8 @@ class JobsDalImpl(implicit val db: JdbcProfile#Backend#Database, implicit val pr
   override def getJobs(): Future[Seq[Job]] = db.run(jobs.result)
 
   override def getJobsByTestId(testId: Int): Future[Seq[Job]] = db.run(jobs.filter(_.testId === testId).result)
+
+  override def getJobsByProjId(projId: Int): Future[Seq[Job]] = db.run(jobs.filter(_.projId === projId).result)
 
   override def getJobById(id: Int): Future[Option[Job]] = db.run(jobs.filter(_.id === id).result.headOption)
 
