@@ -15,17 +15,9 @@ case class Test(
   startDate: Option[ZonedDateTime],
   endDate: Option[ZonedDateTime])
 
-case class SimpleTest(
-  projId: Option[Int],
-  commit: String,
-  branch: Option[String],
-  prId: Option[Int],
-  localDir: String)
-
 trait Tests extends Profile {
   import profile.api._
 
-  // A Tests table with 5 columns: id, project id, commit sha hash, start timestamp and end timestamp
   class Tests(tag: Tag) extends Table[Test](tag, "Tests") {
 
     implicit def dateTime =
@@ -43,7 +35,7 @@ trait Tests extends Profile {
     def endDate = column[Option[ZonedDateTime]]("endDate")
 
     def * = (id.?, projId.?, commit, branch, prId, localDir, startDate, endDate) <> (Test.tupled, Test.unapply)
-    // TODO def project = foreignKey("PROJ_FK", projId, TableQuery[Projects])(_.id)
+    // def project = foreignKey("PROJ_FK", projId, TableQuery[Projects])(_.id)
   }
 
   var tests = TableQuery[Tests]

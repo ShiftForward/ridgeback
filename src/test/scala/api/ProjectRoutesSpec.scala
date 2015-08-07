@@ -11,7 +11,7 @@ import spray.httpx.SprayJsonSupport._
 import scala.concurrent.Future
 import scala.io.Source
 
-class RoutesSpec extends AbstractAPISpec {
+class ProjectRoutesSpec extends AbstractAPISpec {
   sequential
 
   def actorRefFactory = system
@@ -52,10 +52,11 @@ class RoutesSpec extends AbstractAPISpec {
     }
 
     "create a project with the json in post" in {
-      modules.projectsDal.save(Project(None, "name 1", "url 1")) returns Future(1)
+      modules.projectsDal.save(Project(None, "name 1", "url 1")) returns Future(2)
       Post("/projects", SimpleProject("name 1", "url 1")) ~> projects.ProjectPostRoute ~> check {
         handled must beTrue
         status mustEqual Created
+        responseAs[String] == "2"
       }
     }
 

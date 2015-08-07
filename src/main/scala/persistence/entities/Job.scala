@@ -12,14 +12,6 @@ case class Job(
   threshold: Option[Int],
   durations: List[Duration])
 
-case class SimpleJob(
-  projId: Option[Int],
-  testId: Option[Int],
-  jobName: String,
-  source: String,
-  threshold: Option[Int],
-  durations: List[Duration])
-
 trait Jobs extends Profile {
   import profile.api._
 

@@ -37,11 +37,9 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule 
     new ApiResponse(code = 404, message = "Not Found")))
   def ProjectGetRoute = path("projects" / IntNumber) { (projId) =>
     get {
-      respondWithMediaType(`application/json`) {
-        onComplete(modules.projectsDal.getProjectById(projId)) {
-          case Success(project) => complete(project)
-          case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-        }
+      onComplete(modules.projectsDal.getProjectById(projId)) {
+        case Success(project) => complete(project)
+        case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
       }
     }
   }
@@ -50,11 +48,9 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule 
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
   def ProjectsGetRoute = path("projects") {
     get {
-      respondWithMediaType(`application/json`) {
-        onComplete(modules.projectsDal.getProjects()) {
-          case Success(projects) => complete(projects)
-          case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-        }
+      onComplete(modules.projectsDal.getProjects()) {
+        case Success(projects) => complete(projects)
+        case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
       }
     }
   }
@@ -72,7 +68,7 @@ abstract class ProjectHttpService(modules: Configuration with PersistenceModule 
       entity(as[SimpleProject]) {
         projectToInsert =>
           onComplete(modules.projectsDal.save(Project(None, projectToInsert.name, projectToInsert.gitRepo))) {
-            case Success(insertedEntities) => complete(Created)
+            case Success(projId) => complete(Created, projId.toString)
             case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
       }

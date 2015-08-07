@@ -31,7 +31,7 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
   }
 
   val swaggerService = new SwaggerHttpService {
-    override def apiTypes = Seq(typeOf[ProjectHttpService], typeOf[TestHttpService])
+    override def apiTypes = Seq(typeOf[ProjectHttpService], typeOf[TestHttpService], typeOf[JobHttpService])
 
     override def apiVersion = "2.0"
 
@@ -52,11 +52,16 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
     def actorRefFactory = context
   }
 
+  val jobs = new JobHttpService(modules) {
+    def actorRefFactory = context
+  }
+
   // format: OFF
   def receive = runRoute(cors {
     projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
       projects.ProjectTriggerRoute ~ projects.ProjectTriggerRouteBB ~
-      tests.TestGetRoute ~ tests.TestsGetRoute ~
+      tests.TestGetRoute ~ tests.TestsGetRoute ~ tests.TestEventsGetRoute ~
+      jobs.JobGetRoute ~ jobs.JobsGetRoute ~
       swaggerService.routes ~
       get {
         pathPrefix("") {
