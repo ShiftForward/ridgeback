@@ -1,4 +1,4 @@
-# [Ridgeback](http://dduarte.github.io/Ridgeback) [![Build Status](https://travis-ci.org/DDuarte/Ridgeback.svg?branch=master)](https://travis-ci.org/DDuarte/Ridgeback)
+# [Ridgeback](http://ShiftForward.github.io/ridgeback) [![Build Status](https://travis-ci.org/ShiftForward/ridgeback.svg?branch=master)](https://travis-ci.org/ShiftForward/ridgeback)
 
 ![logo](http://i.imgur.com/NdO9orC.png)
 Ridgeback is a continuous integration service for performance tests.
@@ -11,7 +11,7 @@ Ridgeback is a continuous integration service for performance tests.
 ```bash
 # Install SBT and Node.js
 
-$ git clone git://github.com/DDuarte/Ridgeback
+$ git clone git://github.com/ShiftForward/ridgeback
 $ cd Ridgeback
 $ sudo npm -g install grunt-cli karma bower
 $ cd src/main/webapp && grunt
@@ -104,7 +104,7 @@ Tip: this source can be used with [curl](http://curl.haxx.se/) in the following 
 
 ## application.conf
 
-The default configuration can be changed by creating a file named application.conf which overrides the contents of [reference.conf](https://github.com/DDuarte/Ridgeback/blob/master/src/main/resources/reference.conf).
+The default configuration can be changed by creating a file named application.conf which overrides the contents of [reference.conf](https://github.com/ShiftForward/ridgeback/blob/master/src/main/resources/reference.conf).
 
 Config options worth noting:
 - `app.port`: port used to serve the API and the GUI
