@@ -1,0 +1,15 @@
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.m2/repository
+    - $HOME/.sbt
+    - $HOME/.ivy2
+
+language: scala
+
+script:
+    - sbt ++$TRAVIS_SCALA_VERSION compile test:compile
+
+    # Trick to avoid unnecessary cache updates
+    - find $HOME/.sbt -name "*.lock" | xargs rm
