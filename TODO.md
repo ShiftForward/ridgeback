@@ -15,3 +15,4 @@
 - [ ] Change bitbucket user/pass auth to tokens
 - [ ] Add a [deploy with heroku](https://devcenter.heroku.com/articles/heroku-button) button to readme
 - [ ] Add grunt build and test to .travis.yml
+- [ ] Add an explanation of the domain model to the readme (relation between projects, tests and jobs)
