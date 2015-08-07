@@ -1,4 +1,4 @@
-# [Ridgeback](http://dduarte.github.io/Ridgeback) [![Build Status](https://travis-ci.org/DDuarte/TrinityCore.svg?branch=6.x)](https://travis-ci.org/TrinityCore/TrinityCore)
+# [Ridgeback](http://dduarte.github.io/Ridgeback) [![Build Status](https://travis-ci.org/DDuarte/Ridgeback.svg?branch=master)](https://travis-ci.org/DDuarte/Ridgeback)
 
 ![logo](http://i.imgur.com/NdO9orC.png)
 Ridgeback is a continuous integration service for performance tests.
