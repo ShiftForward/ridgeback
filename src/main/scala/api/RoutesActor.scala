@@ -7,6 +7,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.wordnik.swagger.model.ApiInfo
 import core.EventPublisherModule
 import slick.jdbc.meta.MTable
+import spray.http.{ StatusCodes, StatusCode }
 import spray.routing._
 import utils.{ CORSSupport, Configuration, DbModule, PersistenceModule }
 
@@ -51,6 +52,7 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
     def actorRefFactory = context
   }
 
+  // format: OFF
   def receive = runRoute(cors {
     projects.ProjectPostRoute ~ projects.ProjectGetRoute ~ projects.ProjectsGetRoute ~
       projects.ProjectTriggerRoute ~ projects.ProjectTriggerRouteBB ~
@@ -61,8 +63,14 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
           pathEndOrSingleSlash {
             getFromResource("swagger-ui/index.html")
           }
+        } ~ pathPrefix("gui") {
+          pathEndOrSingleSlash {
+            redirect("gui/index.html", StatusCodes.MovedPermanently)
+          } ~
+          getFromDirectory("src/main/webapp/build")
         } ~
-          getFromResourceDirectory("swagger-ui")
+        getFromResourceDirectory("swagger-ui")
       }
   })
+  // format: ON
 }
