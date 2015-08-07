@@ -6,7 +6,6 @@ import akka.util.Timeout
 import com.wordnik.swagger.annotations._
 import core.EventPublisherModule
 import persistence.entities.{ JsonProtocol, _ }
-import spray.http.MediaTypes._
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport
 import spray.routing._
@@ -33,11 +32,9 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule wit
     new ApiResponse(code = 404, message = "Not Found")))
   def TestGetRoute = path("tests" / IntNumber) { testId =>
     get {
-      respondWithMediaType(`application/json`) {
-        onComplete(modules.testsDal.getTestById(testId)) {
-          case Success(test) => complete(test)
-          case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-        }
+      onComplete(modules.testsDal.getTestById(testId)) {
+        case Success(test) => complete(test)
+        case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
       }
     }
   }
@@ -47,24 +44,18 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule wit
     new ApiImplicitParam(name = "projId", required = false, dataType = "integer", paramType = "query", value = "ID of project that needs tests to be fetched")))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
   def TestsGetRoute = path("tests") {
-    parameters('projId.as[Int].?) { (projIdOpt: Option[Int]) =>
-      {
-        get {
-          respondWithMediaType(`application/json`) {
-            projIdOpt match {
-              case None =>
-                onComplete(modules.testsDal.getTests()) {
-                  case Success(tests) => complete(tests)
-                  case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-                }
-              case Some(projId) =>
-                onComplete(modules.testsDal.getTestsByProjId(projId)) {
-                  case Success(tests) => complete(tests)
-                  case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-                }
-            }
+    get {
+      parameters('projId.as[Int].?) {
+        case None =>
+          onComplete(modules.testsDal.getTests()) {
+            case Success(tests) => complete(tests)
+            case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
-        }
+        case Some(projId) =>
+          onComplete(modules.testsDal.getTestsByProjId(projId)) {
+            case Success(tests) => complete(tests)
+            case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+          }
       }
     }
   }
@@ -78,17 +69,15 @@ abstract class TestHttpService(modules: Configuration with PersistenceModule wit
     new ApiResponse(code = 404, message = "Not Found")))
   def TestEventsGetRoute = path("tests" / IntNumber / "events") { testId =>
     get {
-      respondWithMediaType(`application/json`) {
-        onComplete(modules.testsDal.getTestById(testId)) {
-          case Success(Some(test)) =>
-            onComplete(modules.projectsDal.getProjectById(test.projId.getOrElse(0))) {
-              case Success(Some(proj)) => complete(modules.getEvents(proj, testId))
-              case Success(None) => complete(NotFound, test.projId.getOrElse(0).toString)
-              case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-            }
-          case Success(None) => complete(NotFound, testId.toString)
-          case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
-        }
+      onComplete(modules.testsDal.getTestById(testId)) {
+        case Success(Some(test)) =>
+          onComplete(modules.projectsDal.getProjectById(test.projId.getOrElse(0))) {
+            case Success(Some(proj)) => complete(modules.getEvents(proj, testId))
+            case Success(None) => complete(NotFound, test.projId.getOrElse(0).toString)
+            case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+          }
+        case Success(None) => complete(NotFound, testId.toString)
+        case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
       }
     }
   }
