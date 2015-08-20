@@ -1,8 +1,7 @@
 import com.typesafe.sbt.SbtScalariform
 import scalariform.formatter.preferences._
-import NativePackagerKeys._
 
-packageArchetype.java_application
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 lazy val formattingPreferences = FormattingPreferences().
   setPreference(AlignParameters, true).
@@ -19,8 +18,6 @@ lazy val commonSettings = Seq(
   scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 ) ++ formattingSettings
 
-resolvers +=
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 lazy val ridgeback = (project in file(".")).
   settings(commonSettings: _*).
