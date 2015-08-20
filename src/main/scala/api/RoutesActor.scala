@@ -22,7 +22,7 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
 
   implicit val timeout = Timeout(5.seconds)
 
-  // create tables  if they don't exist
+  // create tables if they don't exist
   if (Await.result(modules.db.run(MTable.getTables), 5.seconds).isEmpty) {
     modules.projectsDal.createTables()
     modules.testsDal.createTables()
@@ -72,7 +72,7 @@ class RoutesActor(modules: Configuration with PersistenceModule with DbModule wi
           pathEndOrSingleSlash {
             redirect("index.html", StatusCodes.MovedPermanently)
           } ~
-          getFromDirectory("src/main/webapp/build")
+          getFromResourceDirectory("")
         } ~
         getFromResourceDirectory("swagger-ui")
       }
