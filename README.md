@@ -12,13 +12,13 @@ Ridgeback is a continuous integration service for performance tests.
 # Install SBT and Node.js
 
 $ git clone git://github.com/ShiftForward/ridgeback
-$ cd Ridgeback
+$ cd ridgeback
 $ sudo npm -g install grunt-cli karma bower
-$ cd src/main/webapp && grunt
+$ sbt gruntBuild
 $ sbt run
 
-# The API is now served at http://localhost:8000
-# and the GUI is available at http://localhost:8000/gui
+# The API is now served at http://localhost:8080
+# and the GUI is available at http://localhost:8080/gui/index.html
 ```
 
 ## Introduction
@@ -27,7 +27,7 @@ While performance may not be the most important factor and benchmarks always nee
 
 Tests can be triggered by writing a comment on a pull request with a certain keyword (usually PERFTESTS) and Ridgeback proceeds to clone the repository, fetch the pull request commits and run what is defined in the `.perftests.yml` file on the root directory of the repository. Once this step is done, the duration or durations of the jobs are stored in the database (currently a SQLite file) for posterior analysis. Quickly afterwards, the bot replies to the pull request with a quick overview of the tests ran and a comparison to previous tests (see `messageTemplate` below).
 
-An overview of all projects, history of tests and jobs can be seen in the provided dashboard (by default, http://localhost:8080/gui) (screenshots below!).
+An overview of all projects, history of tests and jobs can be seen in the provided dashboard (by default, http://localhost:8080/gui/index.html) (screenshots below!).
 
 The API and job runner are done in Scala, using Spray to serve HTTP and Akka to manage actors. The frontend is made using [Angular](https://angularjs.org/) and [Rickshaw](http://code.shutterstock.com/rickshaw/) to draw charts.
 
@@ -54,7 +54,7 @@ jobs:                # required, list of jobs to run each test
     after_script:    # optional, list of commands to run after the script
       - first command
       - second command
-  - name: job2   
+  - name: job2
     source: time
     script:
       - some command that takes a while
@@ -96,8 +96,8 @@ A :blue_heart: is used when there are no significative changes in performance (b
 **time**: all the commands are wrapped in single call to [`/usr/bin/time`](http://man7.org/linux/man-pages/man1/time.1.html) and the elapsed real time is used. `format` is ignored.
 
 **output**: the *stdout* of the last command in the `script` is used as the duration of the job.
-To specify the granularity of the duration the `format` field should be used and it can be one the following values: `days`, `hours`, `microseconds`, `milliseconds`, `minute`, `nanoseconds` or `seconds`.  
-Example: The command `echo 2` is the last command in the `script` list, `source: output` and `format: minute` means that the job took 2 minutes to execute.  
+To specify the granularity of the duration the `format` field should be used and it can be one the following values: `days`, `hours`, `microseconds`, `milliseconds`, `minute`, `nanoseconds` or `seconds`.
+Example: The command `echo 2` is the last command in the `script` list, `source: output` and `format: minute` means that the job took 2 minutes to execute.
 Tip: this source can be used with [curl](http://curl.haxx.se/) in the following way: `curl -w %{time_total} -o /dev/null -s http://example.com`.
 
 **ignore**: the duration of the job is ignored, nothing happens. `format` is ignored.
@@ -125,7 +125,7 @@ Config options worth noting:
   - `GET /projects/{projId}` Returns a project based on ID
   - `POST /projects` Add Project
   - `POST /projects/{projId}/trigger` Trigger Project Build
-  - `POST /projects/{projId}/trigger/bb` Trigger Project Build from Bitbucket- 
+  - `POST /projects/{projId}/trigger/bb` Trigger Project Build from Bitbucket-
 - **tests**: Operations about tests
   - `GET /tests?projId={id}` Returns all tests, optionally by project
   - `GET /tests/{testId}` Returns a test based on ID
@@ -138,10 +138,10 @@ More documentation of the API is available with [Swagger](http://swagger.io/) (h
 
 ## Acknowledgments
 
-Ridgeback has been inspired on [Travis CI](https://travis-ci.org).  
+Ridgeback has been inspired on [Travis CI](https://travis-ci.org).
 The interface was adapted from the Bootstrap template Dream by [WebThemez](http://webthemez.com/).
-[ngbp](https://github.com/ngbp/ngbp) by @joshdmiller was used to kickstart the Angular.js frontend.  
-Thanks to the authors of all the tools and libraries used in this project.  
+[ngbp](https://github.com/ngbp/ngbp) by @joshdmiller was used to kickstart the Angular.js frontend.
+Thanks to the authors of all the tools and libraries used in this project.
 Also thanks to [ShiftForward](http://www.shiftforward.eu/) (in particularly @jcazevedo and @ruippeixotog) for being home to this project during a summer internship.
 
 With :heart: from Portugal.
