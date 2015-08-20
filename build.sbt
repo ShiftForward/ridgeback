@@ -18,6 +18,22 @@ lazy val commonSettings = Seq(
   scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 ) ++ formattingSettings
 
+lazy val gruntBuild = taskKey[Unit]("Runs a Grunt build")
+
+gruntBuild := {
+  Process("npm install", new File("src/main/webapp")).!
+  Process("bower install", new File("src/main/webapp")).!
+  Process("grunt build", new File("src/main/webapp")).!
+}
+
+unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "src" / "main" / "webapp" / "build")
+
+lazy val dockerPackagingSettings = Seq(
+  dockerExposedPorts := Seq(8080),
+  dockerUpdateLatest := true,
+  dockerExposedVolumes := Seq("/opt/docker/db"),
+  packageBin in Universal <<= (packageBin in Universal).dependsOn(gruntBuild),
+  stage in Docker <<= (stage in Docker).dependsOn(gruntBuild))
 
 lazy val ridgeback = (project in file(".")).
   settings(commonSettings: _*).
@@ -48,7 +64,9 @@ lazy val ridgeback = (project in file(".")).
         "org.specs2"          %%  "specs2-mock"      % specs2V % "test",
         "org.xerial"          %   "sqlite-jdbc"      % "3.8.11"
       )
-    }
-  )
+    }).
+  settings(dockerPackagingSettings: _*)
+
+enablePlugins(JavaAppPackaging, DockerPlugin)
 
 Revolver.settings
