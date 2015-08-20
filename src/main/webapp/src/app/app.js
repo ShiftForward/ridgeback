@@ -11,7 +11,7 @@ angular.module('ngBoilerplate', [
 ])
 
 .constant('config', {
-  'baseUrl': 'http://localhost:8080'
+  'baseUrl': ''
 })
 
 .config(function myAppConfig ($stateProvider, $urlRouterProvider, $httpProvider, RestangularProvider, config) {
