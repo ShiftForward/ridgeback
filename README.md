@@ -7,7 +7,6 @@ Ridgeback is a continuous integration service for performance tests.
 
 ## Quick Start
 
-
 ```bash
 # Install SBT and Node.js
 
@@ -20,6 +19,17 @@ $ sbt run
 # The API is now served at http://localhost:8080
 # and the GUI is available at http://localhost:8080/gui/index.html
 ```
+
+### Docker
+
+It is also possible to package `ridgeback` as a Docker container. To do so run:
+
+```bash
+$ sbt docker:publishLocal
+$ docker run -p 8080:8080 -v $(realpath db):/opt/docker/db ridgeback:latest
+```
+
+This will create the database in a local folder `db` so that the database state can be preserved.
 
 ## Introduction
 
